@@ -127,6 +127,7 @@ async fn upload(
     window: Window,
     credential: tauri::State<'_, Credential>,
 ) -> Result<Video> {
+    println!("{:?}", video);
     let bili = &*credential.get_credential().await?;
 
     let config = load()?;

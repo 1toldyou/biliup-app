@@ -52,6 +52,7 @@ export const fileselect = () => {
 };
 
 export function attach(files) {
+    console.log("attach(files)", files);
     currentTemplate.update(temp => {
         function findFile(file) {
             return temp.selectedTemplate['files'].find((existingFile) => existingFile.id === file);
@@ -89,13 +90,13 @@ export function attach(files) {
 }
 
 function allComplete(files, temp) {
-    // console.log(temp);
+    console.log("allComplete(files, temp)", files, temp);
     for (const file of files) {
         if (!file.complete && !file.process && temp.atomicInt < 1) {
             temp.atomicInt++;
             file.process = true;
             upload(file, temp);
-            console.log(temp);
+            console.log("temp", temp);
             return false;
         }
     }
@@ -104,6 +105,7 @@ function allComplete(files, temp) {
 
 function upload(video, temp) {
     // const files = [];
+    console.log("upload(video, temp)", video, temp);
     video.start = Date.now();
     invoke('upload', {
         video: video
