@@ -4,8 +4,8 @@
     import {fade, scale} from 'svelte/transition';
     import QrCode from "svelte-qrcode";
 
-    import {isLoggedIn} from './store.svelte';
-    import {addNotification, createPop, notificationHistory} from "./notification.svelte.js";
+    import {isLoggedIn} from './store.js';
+    import {addNotification, createPop, notificationHistory} from "./notification.js";
     import {NotificationPopMode} from "./type";
     import {INVOKE_COMMANDS} from "./lib/constants";
 
@@ -31,7 +31,7 @@
         try {
             let res = await invoke(INVOKE_COMMANDS.loginByCookie);
             console.log(`invoke(${INVOKE_COMMANDS.loginByCookie})`, res);
-            $isLoggedIn = true;
+            isLoggedIn.set(true);
         } catch (e) {
             addNotification({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()}, false);
         }

@@ -1,23 +1,26 @@
 import {get, type Writable, writable} from "svelte/store";
-import {BaseDirectory, create as createFile, exists, readTextFile, writeTextFile} from "@tauri-apps/plugin-fs";
+import {BaseDirectory, exists, readTextFile, writeTextFile} from "@tauri-apps/plugin-fs";
 
 import {NotificationPopMode, type StudioPayload} from "./type";
-import {addNotification} from "./notification.svelte";
+import {addNotification} from "./notification.js";
 
-/* global state */
-export let isLoggedIn: Writable<boolean> = writable(false);
+// /* global state */
+export let isLoggedIn: Writable<boolean> = writable(false);  // Cannot export state from a module if it is reassigned. Either export a function returning the state value or only mutate the state value's properties
 
 /* file-based persistent storage */
 type TemplatesStorage = {
-    templates: StudioPayload[],
-    videoEdits: StudioPayload[],
+    template: {[name: string]: StudioPayload},
+    videoEdit: {[name: string]: StudioPayload},
 }
 const configFileNames = {
     templates: "biliup/templates.json",
 }
 
-export let allTemplates: Writable<StudioPayload[]> = writable([]);
-export let allVideoEdits: Writable<StudioPayload[]> = writable([]);
+// export let allTemplates: Writable<StudioPayload[]> = writable([]);
+// export let allVideoEdits: Writable<StudioPayload[]> = writable([]);
+// export let allTemplates: StudioPayload[] = $state([]);
+// export let allVideoEdits: StudioPayload[] = $state([])
+export let allTemplates: Writable<{[category: string]: {[name: string]: StudioPayload}}> = writable({});
 
 export async function reloadTemplatesAndEdits() {
     if (!(await exists(configFileNames.templates, {baseDir: BaseDirectory.Config}))) {
@@ -25,8 +28,8 @@ export async function reloadTemplatesAndEdits() {
         addNotification({msg: "默认模板文件不存在，创建中", type: NotificationPopMode.INFO}, false);
         try {
             let emptyTemplatesStorage: TemplatesStorage = {
-                templates: [],
-                videoEdits: [],
+                template: {},
+                videoEdit: {},
             }
             await writeTextFile(configFileNames.templates, JSON.stringify(emptyTemplatesStorage), {baseDir: BaseDirectory.Config});
         } catch (e) {
@@ -39,9 +42,11 @@ export async function reloadTemplatesAndEdits() {
     try {
         let templatesFile = await readTextFile(configFileNames.templates, {baseDir: BaseDirectory.Config});
         let templatesFileJSON: TemplatesStorage = JSON.parse(templatesFile);
+        console.log("templatesFileJSON", templatesFileJSON);
         
-        allTemplates.set(templatesFileJSON.templates);
-        allVideoEdits.set(templatesFileJSON.videoEdits);
+        // allTemplates = templatesFileJSON.templates;
+        // allVideoEdits = templatesFileJSON.videoEdits;
+        allTemplates.set(templatesFileJSON);
     } catch (e) {
         console.error("reloadTemplatesAndEdits()", e);
         addNotification({msg: `模板文件读取失败: ${e}`, type: NotificationPopMode.ERROR}, true);
@@ -50,9 +55,9 @@ export async function reloadTemplatesAndEdits() {
 
 export async function saveTemplatesAndEdits() {
     let templatesStorage: TemplatesStorage = {
-        templates: get(allTemplates),
-        videoEdits: get(allVideoEdits),
-    }
+        template: get(allTemplates)["template"],
+        videoEdit: get(allTemplates)["videoEdits"],
+    } // TODO: check for possible undefined
     
     let templatesStorageJSON = JSON.stringify(templatesStorage);
     try {

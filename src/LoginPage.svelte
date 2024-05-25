@@ -3,8 +3,8 @@
 <script lang="ts">
     import {fade, scale} from 'svelte/transition';
 
-    import {isLoggedIn} from "./store.svelte";
-    import {addNotification} from "./notification.svelte.js";
+    import {isLoggedIn} from "./store.js";
+    import {addNotification} from "./notification.js";
     import {NotificationPopMode} from "./type";
     import {BackendCommands} from "./command";
 
@@ -25,7 +25,7 @@
         try {
             let resp = await BackendCommands.loginByCookieFile(cookieFilename);
             console.log("BackendCommands.loginByCookieFile()", resp);
-            $isLoggedIn = true;
+            isLoggedIn.set(true);
         } catch (e) {
             console.error("BackendCommands.loginByCookieFile()", e);
         } finally {

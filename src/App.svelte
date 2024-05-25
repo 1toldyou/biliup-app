@@ -2,8 +2,8 @@
     import {getVersion} from "@tauri-apps/api/app";
     import {SvelteToast} from '@zerodevx/svelte-toast'
 
-    import {isLoggedIn} from "./store.svelte";
-    import {notificationHistory} from "./notification.svelte.js";
+    import {isLoggedIn} from "./store.js";
+    import {notificationHistory} from "./notification.js";
 	import Login from "./LoginPage.svelte";
 	import Home from "./HomePage.svelte";
     import Modal from "./lib/Modal.svelte";
@@ -16,7 +16,7 @@
       on:dragover|preventDefault
       on:drop|preventDefault
 >
-    {#if $isLoggedIn}
+    {#if isLoggedIn}
         <Home/>
     {:else}
         <Login/>
@@ -35,7 +35,7 @@
                     <div slot="box" class="px-4 border-b rounded-t sm:px-6">
                         <div class="bg-white my-2 shadow sm:rounded-md">
                             <ul class="divide-y divide-gray-200">
-                                {#each notificationHistory as notification}
+                                {#each $notificationHistory as notification}
                                     <li>
                                         <div class="indicator w-full">
                                             <span class="!left-auto indicator-item indicator-top indicator-center">
