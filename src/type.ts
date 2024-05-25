@@ -8,7 +8,6 @@ export type NotificationPopEntry = {
 export enum NotificationPopMode {
     ERROR = "Error",
     INFO = "Info",
-    WARNING = "Warning"
 }
 
 export type SelectedTemplate = {

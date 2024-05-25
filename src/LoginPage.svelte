@@ -13,7 +13,7 @@
             let resp = await BackendCommands.listAccounts();
             console.log("BackendCommands.listAccounts()", resp);
         } catch (e: any) {
-            addNotification({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()}, false);
+            addNotification({type: NotificationPopMode.ERROR, msg: e.toString()}, false);
         }
     })();
 
