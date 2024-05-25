@@ -4,24 +4,16 @@
     import {fade, scale} from 'svelte/transition';
 
     import {isLoggedIn} from "./store.svelte";
-    import {notificationHistory} from "./common.svelte";
+    import {addNotification} from "./notification.svelte.js";
     import {NotificationPopMode} from "./type";
     import {BackendCommands} from "./command";
 
     (async () => {
-        // try {
-        //     let res: InvokeCommandsReturn.loginByCookie = await invoke(INVOKE_COMMANDS.loginByCookie);
-        //     console.log(`invoke(${INVOKE_COMMANDS.loginByCookie})`, res);
-        //     $isLoggedIn = true;
-        // } catch (e) {
-        //     notificationHistory.push({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()})
-        // }
-
         try {
             let resp = await BackendCommands.listAccounts();
             console.log("BackendCommands.listAccounts()", resp);
         } catch (e: any) {
-            notificationHistory.push({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()})
+            addNotification({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()}, false);
         }
     })();
 

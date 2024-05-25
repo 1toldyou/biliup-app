@@ -33,17 +33,36 @@ bilibili投稿客户端，支持Windows，Linux，macOS。
 ![login](.github/resource/login.png)
 ![main](.github/resource/main.png)
 
-基于TAURI: ` GUI: Svelte , 后端: Rust`
+基于TAURI: ` GUI: Svelte 5, 后端: Rust`
 ## Roadmap
-- [x] 短信登录, 二维码登录
-- [x] 上传视频封面
-- [x] 自由切换投稿线路
-- [x] 设置投稿并发数
-- [x] 多p按照文件名升序、降序
-- [ ] 远程部署agent，本地操作
-- [ ] 插件系统，如自动录播后上传
+- [ ] 账号密码登录
+- [ ] 短信登录, 二维码登录
+- [x] 多账号选择
+- [ ] 上传视频封面
+- [ ] 自由切换投稿线路
+- [ ] 设置投稿并发数
+- [ ] 多p按照文件名升序、降序
+- [ ] 定时发布选项
+- [ ] Hi-Res音频选项
 
 ## Development
+Latest NodeJS LTS and Rust stable are required.
 ```bash
+npm i
 tauri dev
 ```
+
+### Architecture
+
+#### State
+The backend command has persistent state, so once logged in there's no need to supply credential on every command invocation,
+however, if there is a need to switch account, must call `invoke("logout")` or `credential.clear()` first.
+
+#### Storage Layout
+- biliup/users/{mid}.json
+  - cookie file for each user
+- 
+
+
+#### Interact with external services
+To avoid CORS issues, all requests are made by the backend

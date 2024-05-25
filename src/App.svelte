@@ -1,7 +1,7 @@
 <script lang="ts">
     import {getVersion} from "@tauri-apps/api/app";
     import {isLoggedIn} from "./store.svelte";
-    import {notificationHistory} from "./common.svelte";
+    import {notificationHistory} from "./notification.svelte.js";
 	import Login from "./LoginPage.svelte";
 	import Home from "./HomePage.svelte";
     import Modal from "./lib/Modal.svelte";

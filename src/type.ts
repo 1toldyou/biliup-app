@@ -1,5 +1,6 @@
+/* types of variables */
 export type NotificationPopEntry = {
-    type: string;
+    type: NotificationPopMode;
     msg: string;
     date: Date;
 }
@@ -68,7 +69,8 @@ export type BiliupConfigOriginal = {
     checkInputsBeforeSubmit: boolean,
 }
 
-type StudioPayload = {
+/* types for using invoke()  */
+export type StudioPayload = {
     copyright: number,
     source: string,
     tid: number,

@@ -5,7 +5,7 @@
     import QrCode from "svelte-qrcode";
 
     import {isLoggedIn} from './store.svelte';
-    import {createPop, notificationHistory} from "./common.svelte";
+    import {addNotification, createPop, notificationHistory} from "./notification.svelte.js";
     import {NotificationPopMode} from "./type";
     import {INVOKE_COMMANDS} from "./lib/constants";
 
@@ -33,7 +33,7 @@
             console.log(`invoke(${INVOKE_COMMANDS.loginByCookie})`, res);
             $isLoggedIn = true;
         } catch (e) {
-            notificationHistory.push({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()})
+            addNotification({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()}, false);
         }
     })();
     // invoke('load')

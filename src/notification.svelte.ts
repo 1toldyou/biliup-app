@@ -4,27 +4,32 @@ import {invoke} from "@tauri-apps/api/core";
 import {type NotificationPopEntry, NotificationPopMode} from "./type";
 import Pop from "./lib/Pop.svelte";
 import {BackendCommands} from "./command";
+import {mount} from "svelte";
 
 
 export let notificationHistory: NotificationPopEntry[] = $state([]);
 
+export function addNotification(entry: NotificationPopEntry, pop: boolean) {
+    notificationHistory.push(entry);
+    if (pop) {
+        createPop(entry.msg, 3000, entry.type);
+    }
+}
+
 export function createPop(msg: string, duration = 3000, mode: NotificationPopMode) {
-    BackendCommands.log(mode, msg).then(r => console.log("BackendCommands.log(mode, msg)", r));
-    notificationHistory.push({
-        type: mode,
-        msg: msg,
-        date: new Date(),
-    });
-    
-    const pop = new Pop({
-        target: document.querySelector('#alerts'),
-        intro: true,
-        props: {
-            msg: msg,
-            mode: mode
-        }
+    // const pop = new Pop({
+    //     target: document.querySelector('#alerts'),
+    //     intro: true,
+    //     props: {
+    //         msg: msg,
+    //         mode: mode
+    //     }
+    // });
+    mount(Pop, {
+        target: document.querySelector('#alerts'), props: {msg, mode}
     });
     setTimeout(() => outroAndDestroy(pop), duration);
+    console.log("pop created");
 }
 
 
