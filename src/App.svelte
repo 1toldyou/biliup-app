@@ -1,5 +1,7 @@
 <script lang="ts">
     import {getVersion} from "@tauri-apps/api/app";
+    import {SvelteToast} from '@zerodevx/svelte-toast'
+
     import {isLoggedIn} from "./store.svelte";
     import {notificationHistory} from "./notification.svelte.js";
 	import Login from "./LoginPage.svelte";
@@ -88,6 +90,9 @@
                 </Modal>
             </li>
         </ul>
+
+    <!-- TODO: style the toast -->
+    <SvelteToast options={{}}/>
 </main>
 
 <style global lang="postcss">
