@@ -1,13 +1,16 @@
-<script>
-    import {fly} from 'svelte/transition';
+<svelte:options runes={false} />
 
-    export let msg = '';
-    export let mode = '';
+<script lang="ts">
+    import {fly} from 'svelte/transition';
+    import {NotificationPopMode} from "./type";
+
+    export let msg: string;
+    export let mode: NotificationPopMode;
 </script>
 
 <div class="flex mt-2.5 mr-1.5 min-w-fit max-w-sm mx-auto overflow-hidden bg-white rounded-lg shadow-md"
      transition:fly={{x: 500}}>
-    {#if (mode === 'Error')}
+    {#if mode === NotificationPopMode.ERROR}
 
         <div class="flex items-center justify-center w-12 bg-red-500">
             <svg class="w-6 h-6 text-white fill-current" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">

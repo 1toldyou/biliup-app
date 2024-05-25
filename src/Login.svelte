@@ -1,14 +1,17 @@
 <script lang="ts">
-    import {isLogin} from './store';
-    import {fade, scale} from 'svelte/transition';
     import {invoke} from '@tauri-apps/api/core';
-    import {createPop, notifyHistory} from "./common";
-    import QrCode from "svelte-qrcode";
     import {open} from "@tauri-apps/plugin-shell";
+    import {fade, scale} from 'svelte/transition';
+    import QrCode from "svelte-qrcode";
+
+    import {isLoggedIn} from './store.svelte';
+    import {createPop, notificationHistory} from "./common.svelte";
+    import {NotificationPopMode} from "./type";
+    import {INVOKE_COMMANDS} from "./lib/constants";
 
     let rememberMe: boolean = false;
-    let username;
-    let password;
+    let username: string;
+    let password: string;
     let loginMethod = "password";
     let countryCode = 86;
     let telephone: number = null;
@@ -18,63 +21,68 @@
     let throttle = false;
     let maxtime = 60;
 
-    invoke('login_by_cookie',)
-        .then((res) => {
-            isLogin.set(true);
-            console.log(`Message: ${res}`)
-        })
-        .catch((e) => $notifyHistory = [...$notifyHistory, {
-            type: 'Error',
-            msg: e,
-            date: new Date(),
-        }]);
-    invoke('load')
-        .then((res) => {
-            username = res.user.account.username;
-            password = res.user.account.password;
-            rememberMe = true;
-            // isLogin.set(true);
-            console.log(res);
-        }).catch((e) => {
-            let a = '未命名模板';
-            invoke('save', {
-                config: {
-                    user: {
-                        account: {
-                            username: '',
-                            password: ''
-                        }
-                    },
-                    streamers: {
-                        ['未命名模板']: {
-                            title: '',
-                            copyright: 1,
-                            source: '',
-                            tid: 171,
-                            desc: '',
-                            dynamic: '',
-                            tag: '',
-                            cover: '',
-                            desc_format_id: 0,
-                            subtitle: {
-                                open: 0,
-                                lan: ''
-                            },
-                            videos: [],
-                            open_subtitle: false
-                        }
-                    }
-                }
-            })
-                .then((res) => {
-                    console.log(res);
-                }).catch((e) => {
-                createPop(e, 5000);
-                console.log(e);
-            })
-            console.log(e);
+    // invoke(INVOKE_COMMANDS.loginByCookie)
+    //     .then((res) => {
+    //         $isLoggedIn = true;
+    //         console.log(`Message: ${res}`)
+    //     })
+    //     .catch(e => notificationHistory.push({type: NotificationPopMode.ERROR, msg: e, date: new Date()}));
+    (async () => {
+        try {
+            let res = await invoke(INVOKE_COMMANDS.loginByCookie);
+            console.log(`invoke(${INVOKE_COMMANDS.loginByCookie})`, res);
+            $isLoggedIn = true;
+        } catch (e) {
+            notificationHistory.push({type: NotificationPopMode.ERROR, msg: e.toString(), date: new Date()})
         }
-    )
+    })();
+    // invoke('load')
+    //     .then((res) => {
+    //         username = res.user.account.username;
+    //         password = res.user.account.password;
+    //         rememberMe = true;
+    //         // isLogin.set(true);
+    //         console.log(res);
+    //     }).catch((e) => {
+    //         let a = '未命名模板';
+    //         invoke('save', {
+    //             config: {
+    //                 user: {
+    //                     account: {
+    //                         username: '',
+    //                         password: ''
+    //                     }
+    //                 },
+    //                 streamers: {
+    //                     ['未命名模板']: {
+    //                         title: '',
+    //                         copyright: 1,
+    //                         source: '',
+    //                         tid: 171,
+    //                         desc: '',
+    //                         dynamic: '',
+    //                         tag: '',
+    //                         cover: '',
+    //                         desc_format_id: 0,
+    //                         subtitle: {
+    //                             open: 0,
+    //                             lan: ''
+    //                         },
+    //                         videos: [],
+    //                         open_subtitle: false
+    //                     }
+    //                 }
+    //             }
+    //         })
+    //             .then((res) => {
+    //                 console.log(res);
+    //             }).catch((e) => {
+    //             createPop(e, 5000);
+    //             console.log(e);
+    //         })
+    //         console.log(e);
+    //     }
+    // )
     function login_by_sms() {
         invoke('login_by_sms', {code: +verificationCode, res: ret})
             .then((res) => {
@@ -248,11 +256,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                     </svg>
-<!--                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">-->
-<!--                        <path-->
-<!--                                d="M23.954 4.569c-.885.389-1.83.654-2.825.775 1.014-.611 1.794-1.574 2.163-2.723-.951.555-2.005.959-3.127 1.184-.896-.959-2.173-1.559-3.591-1.559-2.717 0-4.92 2.203-4.92 4.917 0 .39.045.765.127 1.124C7.691 8.094 4.066 6.13 1.64 3.161c-.427.722-.666 1.561-.666 2.475 0 1.71.87 3.213 2.188 4.096-.807-.026-1.566-.248-2.228-.616v.061c0 2.385 1.693 4.374 3.946 4.827-.413.111-.849.171-1.296.171-.314 0-.615-.03-.916-.086.631 1.953 2.445 3.377 4.604 3.417-1.68 1.319-3.809 2.105-6.102 2.105-.39 0-.779-.023-1.17-.067 2.189 1.394 4.768 2.209 7.557 2.209 9.054 0 13.999-7.496 13.999-13.986 0-.209 0-.42-.015-.63.961-.689 1.8-1.56 2.46-2.548l-.047-.02z">-->
-<!--                        </path>-->
-<!--                    </svg>-->
+
                     <span class="hidden mx-2 sm:inline">扫码登录</span>
                 </a>
             </div>

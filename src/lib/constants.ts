@@ -1,4 +1,6 @@
 export const INVOKE_COMMANDS = {
+    log: "log",
+    loginByCookie: "login_by_cookie",
     getOthersMyinfo: "get_others_myinfo",
 }
 
