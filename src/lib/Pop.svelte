@@ -2,7 +2,7 @@
 
 <script lang="ts">
     import {fly} from 'svelte/transition';
-    import {NotificationPopMode} from "./type";
+    import {NotificationPopMode} from "../type";
 
     export let msg: string;
     export let mode: NotificationPopMode;

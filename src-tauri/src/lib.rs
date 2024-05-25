@@ -39,7 +39,20 @@ impl Credential {
             .json()
             .await?;
         let user = config_path(&app)?.join(format!("users/{}.json", myinfo["data"]["mid"]));
-        user_path(app, user).await?;
+        something_user_path(app, user).await?;
+        let arc = Arc::new(login_info);
+        *self.credential.write().unwrap() = Some(arc.clone());
+        Ok(arc)
+    }
+
+    pub async fn get_specific_user_credential(&self, app: &tauri::AppHandle, cookie_filename: String) -> error::Result<Arc<BiliBili>> {
+        {
+            let read_guard = self.credential.read().unwrap();
+            if !read_guard.is_none() {
+                return Ok(read_guard.as_ref().unwrap().clone());
+            }
+        }
+        let login_info = login_by_cookies(user_path(&app, cookie_filename).await?).await?;
         let arc = Arc::new(login_info);
         *self.credential.write().unwrap() = Some(arc.clone());
         Ok(arc)
@@ -70,7 +83,7 @@ pub fn config_path(app: &tauri::AppHandle) -> error::Result<PathBuf> {
     Ok(config_dir)
 }
 
-pub async fn user_path(app: &tauri::AppHandle, path: PathBuf) -> error::Result<PathBuf> {
+pub async fn something_user_path(app: &tauri::AppHandle, path: PathBuf) -> error::Result<PathBuf> {
     let mut users = config_path(app)?;
     users.push("users");
     if !users.exists() {
@@ -79,6 +92,16 @@ pub async fn user_path(app: &tauri::AppHandle, path: PathBuf) -> error::Result<P
     std::fs::copy(cookie_file(app)?, &path)?;
     println!("user_path: {path:?}");
     Ok(users)
+}
+
+pub async fn user_path(app: &tauri::AppHandle, filename: String) -> error::Result<PathBuf> {
+    let mut users_dir = config_path(app)?;
+    users_dir.push("users");
+    if !users_dir.exists() {
+        std::fs::create_dir(&users_dir)?;
+    }
+
+    Ok(users_dir.join(filename))
 }
 
 pub async fn login_by_password(app: &tauri::AppHandle, username: &str, password: &str) -> anyhow::Result<()> {
@@ -153,3 +176,4 @@ mod test {
     #[test]
     fn test_hex() {}
 }
+

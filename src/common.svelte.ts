@@ -2,14 +2,14 @@ import {invoke} from "@tauri-apps/api/core";
 // import {check_outros, group_outros, transition_out} from "svelte/internal";
 
 import {type NotificationPopEntry, NotificationPopMode} from "./type";
-import Pop from "./Pop.svelte";
-import {INVOKE_COMMANDS} from "./lib/constants";
+import Pop from "./lib/Pop.svelte";
+import {BackendCommands} from "./command";
 
 
 export let notificationHistory: NotificationPopEntry[] = $state([]);
 
 export function createPop(msg: string, duration = 3000, mode: NotificationPopMode) {
-    invoke(INVOKE_COMMANDS.log, {level: mode, msg: msg}).then(r => console.log(`invoke(${INVOKE_COMMANDS.log})`, r));
+    BackendCommands.log(mode, msg).then(r => console.log("BackendCommands.log(mode, msg)", r));
     notificationHistory.push({
         type: mode,
         msg: msg,

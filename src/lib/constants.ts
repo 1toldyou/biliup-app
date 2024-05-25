@@ -1,9 +1,3 @@
-export const INVOKE_COMMANDS = {
-    log: "log",
-    loginByCookie: "login_by_cookie",
-    getOthersMyinfo: "get_others_myinfo",
-}
-
 export const contentLimitation = {
     titleLength: 80,
     videoPartTitleLength: 80,  // actively limit the length at Progress.svelte

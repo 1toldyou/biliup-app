@@ -2,9 +2,9 @@
     import {getVersion} from "@tauri-apps/api/app";
     import {isLoggedIn} from "./store.svelte";
     import {notificationHistory} from "./common.svelte";
-	import Login from "./Login.svelte";
-	import Home from "./Home.svelte";
-    import Modal from "./Modal.svelte";
+	import Login from "./LoginPage.svelte";
+	import Home from "./HomePage.svelte";
+    import Modal from "./lib/Modal.svelte";
     import {NotificationPopMode} from "./type";
 </script>
 

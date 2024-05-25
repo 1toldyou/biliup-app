@@ -359,9 +359,43 @@ fn main() {
             show_video,
             edit_video,
             log,
-            logout
+            logout,
+            list_accounts,
+            login_by_cookie_file
         ])
         .manage(Credential::default())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+
+/* Below are new commands for the frontend re-write */
+
+use walkdir::WalkDir;
+
+#[tauri::command]
+fn list_accounts(app: tauri::AppHandle) -> Result<Vec<String>> {
+    let mut user_account_list: Vec<String> = vec![];
+    let user_config_directory = config_path(&app)?.join("users");
+    for entry in WalkDir::new(user_config_directory).into_iter().filter_map(|e| e.ok()) {
+        if !entry.path().is_file() {
+            continue;
+        }
+        let filename = entry.path().file_name();
+        match filename {
+            Some(name) => user_account_list.push(name.to_string_lossy().to_string()),
+            None => println!("unable to get file_name() from {:?}", entry.path())
+        }
+    }
+
+    Ok(user_account_list)
+}
+
+/// New login by cookie file in biliup/users/*.json
+/// Will logout current user first
+#[tauri::command]
+async fn login_by_cookie_file(app: tauri::AppHandle, credential: tauri::State<'_, Credential>, cookie_filename: String) -> Result<String> {
+    credential.clear(); // logout
+    credential.get_specific_user_credential(&app, cookie_filename).await?;
+    Ok("登录成功".into())
 }
