@@ -23,8 +23,7 @@
     "filepond-plugin-image-preview": "^4.6.12",
     "svelte-dnd-action": "^0.9.47",
     "svelte-filepond": "^0.2.2",
-    "svelte-qrcode": "^1.0.0",
-    "tippy.js": "^6.3.7"
+    "svelte-qrcode": "^1.0.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.1",

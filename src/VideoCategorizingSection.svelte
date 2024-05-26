@@ -28,11 +28,11 @@
     <p>加载分区列表中</p>
 {:then res}
     {#if res.code === 0}
-        <div class="grid grid-flow-col max-h-64">
-            <div class="container overflow-y-scroll enter bg-white dark:bg-gray-800 max-h-64 max-w-32">
+        <div class="flex max-h-64">
+            <div class="container overflow-y-scroll enter bg-white dark:bg-gray-800 max-h-64 max-w-28">
                 {#each res.data.typelist as parentCategory}
                     <button class:selected="{currentParentCategoryID === parentCategory.id}"
-                         class="py-2 pr-0 flex text-gray-600 justify-between items-center cursor-pointer hover:bg-gray-200 hover:text-gray-700"
+                         class="py-2 pr-0 flex text-gray-600 justify-between items-center cursor-pointer hover:bg-gray-200 hover:text-gray-700 max-w-full"
                          onclick={() => currentParentCategoryID = parentCategory.id}
                     >
                         <span class="ml-3.5 font-medium dark:text-gray-200 text-base">
@@ -45,12 +45,12 @@
                     </button>
                 {/each}
             </div>
-            <div class="overflow-y-auto max-h-64 py-1.5 max-w-96">
+            <div class="overflow-y-scroll max-h-64 py-1.5 max-w-full flex flex-col">
                 {#each res.data.typelist as parentCategory}
                     {#if parentCategory.id === currentParentCategoryID}
                         {#each parentCategory.children as currentCategory}
                             <button class:selected="{currentChildCategoryID === currentCategory.id}"
-                                    class="p-2.5 cursor-pointer hover:bg-gray-200 hover:text-gray-700"
+                                    class="p-2.5 cursor-pointer hover:bg-gray-200 hover:text-gray-700 text-left"
                                     onclick={()=> onSelectCategory(currentCategory.id)}
                             >
                                 <span class="font-weight">{currentCategory.name}</span>
