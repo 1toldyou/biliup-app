@@ -8,6 +8,8 @@
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
     import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
+    import tippy, {animateFill} from "tippy.js";
+    import {mount} from "svelte";
 
     let {index}: {index: number} = $props();
 
@@ -53,6 +55,69 @@
         $activeTemplates[index].data.tag = currentTags.concat(tagInput).join(",");
         tagInput = "";
     }
+
+    function vidCatTip(node) {
+        console.log("vidCatTip(node, combine)", node);
+        let off;
+        let detail;
+        let partition;
+        tippy(node, {
+            arrow: false,
+            trigger: 'click',
+            allowHTML: true,
+            theme: 'light',
+            placement: 'bottom-start',
+            animateFill: true,
+            plugins: [animateFill],
+            inertia: true,
+            interactive: true,
+            onCreate(instance) {
+                console.log("onCreate(instance)", instance);
+                console.log("mount(VideoCategorizingSection), target:", instance.popper.firstChild.lastChild);
+                partition = mount(VideoCategorizingSection, {
+                    target: instance.popper.firstChild.lastChild,
+                    props: {
+                        tid: $activeTemplates[index].data.tid,
+                        parentCategoryName: currentParentCategoryName,
+                        subCategoryName: currentSubCategoryName
+                    },
+                    events: {
+                        "tid": event => {
+                            console.log("partition.$on('tid', event)", event.detail);
+                            instance.hide();
+                            detail = event.detail;
+                        }
+                    }
+                });
+            },
+            onShown(instance) {
+                // @ts-ignore
+                instance.popper.firstChild.lastChild.firstChild.firstChild.scrollTo({
+                    top: detail?.scroll[0]?.offsetTop - 3,
+                    // left: 100,
+                    behavior: 'smooth'
+                });
+                // @ts-ignore
+                instance.popper.firstChild.lastChild.firstChild.lastChild.scrollTo({
+                    top: detail?.scroll[1]?.offsetTop - 8,
+                    // left: 100,
+                    behavior: 'smooth'
+                });
+                // console.log(instance.popper.firstChild.lastChild.firstChild.firstChild.scrollTop);
+            },
+            onDestroy(instance) {
+                off();
+            },
+        });
+    }
+
+    let currentParentCategoryName = $state("");
+    let currentSubCategoryName = $state("");
+
+    $effect(() => {
+        console.log("currentParentCategoryName", currentParentCategoryName);
+        console.log("currentSubCategoryName", currentSubCategoryName);
+    });
 </script>
 
 <h1>Upload for {$activeTemplates[index].category} - {$activeTemplates[index].name}</h1>
@@ -103,8 +168,21 @@
     {/if}
 </section>
 
-<section>
-    <VideoCategorizingSection/>
+<section class="flex w-52" use:vidCatTip={{}}>
+    <button class="border border-gray-300 relative w-full bg-white rounded-md pl-3 pr-10 py-3 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            type="button"
+    >
+        <span class="flex items-center">
+            <span class="ml-1 block truncate">
+                {currentParentCategoryName} → {currentSubCategoryName}
+            </span>
+        </span>
+        <span class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+            <svg aria-hidden="true" class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" fill-rule="evenodd"></path>
+            </svg>
+        </span>
+    </button>
 </section>
 
 <section class="flex flex-wrap rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent">

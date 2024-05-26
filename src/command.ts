@@ -81,3 +81,21 @@ type ArchivePreResponse = {
         state: string
     }
 }
+
+let commandCache: {[key: string]: any} = {};
+
+// @ts-ignore
+export async function cacheCommand<T extends (...args: any[]) => Promise<BilibiliAPIResponse<any>>>(fn: T, args: Parameters<T>[]): ReturnType<T> {
+    let cacheKey = fn.name + JSON.stringify(args);
+    if (commandCache[cacheKey]){
+        console.log("cache hit", cacheKey);
+        return commandCache[cacheKey];
+    }
+    
+    let resp = await fn(...args);
+    if (resp.code === 0){
+        console.log("cache set", cacheKey)
+        commandCache[cacheKey] = resp;
+    }
+    return resp as ReturnType<T>;
+}
