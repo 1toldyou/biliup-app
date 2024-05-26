@@ -6,42 +6,53 @@
    import {addToActiveTemplates, allTemplates, saveAllTemplates} from "./store";
    import {NotificationPopMode, type StudioPayload} from "./type";
    import {addNotification} from "./notification";
+   import {CopyrightType} from "./lib/constants";
 
    let currentTemplateCategory: string = $state("template");
+   let newTemplateName: string = $state("");
 
    function addTemplate(name: string, template: StudioPayload) {
+      if (name === "") {
+         addNotification({msg: `Template name cannot be empty`, type: NotificationPopMode.ERROR}, true);
+         return;
+      }
+
       if (name in $allTemplates[currentTemplateCategory]) {
          addNotification({msg: `Template "${name}" already exists`, type: NotificationPopMode.ERROR}, true);
          return;
       }
 
       $allTemplates[currentTemplateCategory][name] = template;
+      console.log(`Added template ${name} to category ${currentTemplateCategory}`);
 
       saveAllTemplates();
    }
 
    function makeBlankTemplate(name: string): StudioPayload {
       return {
-         aid: undefined,
-         copyright: 0,
+         aid: null,
+         copyright: CopyrightType.original,
          cover: "",
          desc: "",
          desc_format_id: 0,
-         desc_v2: undefined,
+         desc_v2: null,
          dolby: 0,
-         dtime: undefined,
+         dtime: null,
          dynamic: "",
          interactive: 0,
          lossless_music: 0,
-         mission_id: undefined,
-         no_reprint: 0,
+         mission_id: null,
+         no_reprint: 1,
          open_elec: 0,
          open_subtitle: false,
          source: "",
-         subtitle: undefined,
+         subtitle: {
+            open: 0,
+            lan: ""
+         },
          tag: "",
          tid: 0,
-         title: "",
+         title: name,
          up_close_danmu: false,
          up_close_reply: false,
          up_selection_reply: false,
@@ -70,6 +81,7 @@
 
       delete $allTemplates[currentTemplateCategory][name];
       $allTemplates[currentTemplateCategory] = $allTemplates[currentTemplateCategory];  // reactivity
+      await saveAllTemplates();
    }
 
    function addTemplateCategory(category: string) {
@@ -104,9 +116,15 @@
 <h1>Templates List</h1>
 
 <section>
-   <p>{currentTemplateCategory}</p>
+<!--   <p>{currentTemplateCategory}</p>-->
    {#each Object.keys($allTemplates) as category}
-      <button onclick={() => currentTemplateCategory = category}>{category}</button>
+      <button onclick={() => currentTemplateCategory = category}>
+         {#if category === currentTemplateCategory}
+            <strong>{category}</strong>
+         {:else}
+            <p>{category}</p>
+         {/if}
+      </button>
    {/each}
 
     <button onclick={() => addTemplateCategory("test")}>Add Category</button>
@@ -127,7 +145,8 @@
          </div>
       {/each}
 
-      <button onclick={() => addTemplate(`test ${new Date()}`, makeBlankTemplate("test template"))}>Add Template</button>
+      <input type="text" bind:value={newTemplateName} placeholder="模板名称" />
+      <button onclick={() => addTemplate(newTemplateName, makeBlankTemplate("test template"))}>Add Template</button>
    {:else}
         <p>No templates in category "{currentTemplateCategory}"</p>
    {/if}

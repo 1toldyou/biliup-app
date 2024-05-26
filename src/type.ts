@@ -35,39 +35,6 @@ export type SelectedTemplate = {
 
 export type BilibiliAPIResponse<T> = {code: number, message: string, data: T}
 
-export type BiliupConfigOriginal = {
-    limit: number,
-    line: string,
-    streamers: {
-        [key: string]: {
-            aid: number,
-            copyright: number,
-            cover: string,
-            desc: string,
-            desc_format_id: number,
-            dolby: number,
-            dtime: any,
-            dynamic: string,
-            interactive: number,
-            lossless_music: number,
-            mission_id: number,
-            no_reprint: number,
-            open_elec: boolean | null,
-            open_subtitle: string,
-            source: string,
-            subtitle: {lan: string, open: number}
-            tag: string,
-            tid: number,
-            title: string
-            up_close_danmu: boolean,
-            up_close_reply: boolean,
-            up_selection_reply: boolean,
-        }
-    },
-    user: any,
-    checkInputsBeforeSubmit: boolean,
-}
-
 /* types for using invoke()  */
 export type StudioPayload = {
     copyright: number,
@@ -97,14 +64,14 @@ export type StudioPayload = {
 }
 
 type CreditPayload = {
-    open: number,
-    lan: string,
-};
-
-type SubtitlePayload = {
     type_id: number,
     raw_text: string,
     biz_id: string | null,
+};
+
+type SubtitlePayload = {
+    open: number,
+    lan: string,
 };
 
 type VideoPayload = {
