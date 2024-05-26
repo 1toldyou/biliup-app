@@ -44,7 +44,6 @@
     </div>
     <hr>
     <div class="flex-none w-2/3" style="border:1px solid black">
-        <p>Upload Section</p>
         <WorkSection/>
     </div>
 </div>

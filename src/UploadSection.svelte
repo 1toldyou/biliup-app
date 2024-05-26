@@ -9,6 +9,7 @@
     import {addNotification} from "./notification";
     import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
     import {BackendCommands, cacheCommand} from "./command";
+    import CoverUploadSection from "./CoverUploadSection.svelte";
 
     let {index}: {index: number} = $props();
 
@@ -59,6 +60,8 @@
     let currentParentCategoryName = $state("");
     let currentSubCategoryName = $state("");
 
+    $effect(() => console.log(`activeTemplates[${index}]: ${currentParentCategoryName} → ${currentSubCategoryName}, tid = ${$activeTemplates[index].data.tid}`)); // this might be necessary to trigger reactivity
+
     $effect(() => {
         // console.log(`activeTemplates[${index}].data.tid`, $activeTemplates[index].data.tid);
         console.log("update currentParentCategoryName and currentSubCategoryName from", $activeTemplates[index].data.tid);
@@ -69,10 +72,10 @@
                         if (subCategory.id === $activeTemplates[index].data.tid) {
                             currentSubCategoryName = subCategory.name;
                             currentParentCategoryName = parentCategory.name;
+                            console.log("got new category names", currentParentCategoryName, currentSubCategoryName);
                         }
                     });
                 });
-                console.log(`activeTemplates[${index}]: ${currentParentCategoryName} → ${currentSubCategoryName}, tid = ${$activeTemplates[index].data.tid}`);
             }
             else {
                 console.error("BackendCommands.archivePre()", res);
@@ -91,6 +94,10 @@
     {:else}
         <input class="w-full bg-white-100 border border-gray-300" type="text" bind:value={$activeTemplates[index].data.title} placeholder="标题，长度限制{contentLimitation.titleLength}个字符">
     {/if}
+</section>
+
+<section>
+    <CoverUploadSection bind:templateIndex={index} />
 </section>
 
 <section class="bg-[#fafcfd] border rounded-md px-2 py-1">
@@ -138,7 +145,11 @@
     >
         <span class="flex items-center">
             <span class="ml-1 block truncate">
-                {currentParentCategoryName} → {currentSubCategoryName}
+                {#if currentSubCategoryName}
+                    {currentParentCategoryName} → {currentSubCategoryName}
+                {:else}
+                    请选择分区
+                {/if}
             </span>
         </span>
         <span class="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">

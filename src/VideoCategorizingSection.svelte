@@ -17,7 +17,7 @@
     }: {templateIndex: number} = $props();
 
     function onSelectCategory(tid: number) {
-        // console.log(`onSelectCategory() for template ${templateIndex}`);
+        console.log(`onSelectCategory() for template ${templateIndex}`);
         // currentChildCategoryID = tid;
         $activeTemplates[templateIndex].data.tid = tid;
         // console.log(`activeTemplates[${templateIndex}].data.tid`, $activeTemplates[templateIndex].data.tid);

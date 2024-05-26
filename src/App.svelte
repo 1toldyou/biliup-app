@@ -2,12 +2,19 @@
     import {getVersion} from "@tauri-apps/api/app";
     import {SvelteToast} from '@zerodevx/svelte-toast'
 
-    import {isLoggedIn} from "./store.js";
+    import {activeTemplates, allTemplates, isLoggedIn} from "./store.js";
     import {notificationHistory} from "./notification.js";
 	import Login from "./LoginPage.svelte";
 	import Home from "./HomePage.svelte";
     import Modal from "./lib/Modal.svelte";
     import {NotificationPopMode} from "./type";
+
+    window["biliup-debug"] = () => {
+        console.log("isLoggedIn", isLoggedIn);
+        console.log("notificationHistory", notificationHistory);
+        console.log("$allTemplates", $allTemplates);
+        console.log("$activeTemplates", $activeTemplates);
+    }
 </script>
 
 <main class="bg-gradient-to-b from-[#fefefe] to-[#e7f9f4]"

@@ -7,21 +7,16 @@
     let currentTemplateIndex: number = $state(-1);
 </script>
 
-<h1>Work Section</h1>
-
 <section class="flex">
     {#each $activeTemplates as templatePack, index}
         <div>
-            {#if currentTemplateIndex === index}
-                <b>{templatePack.category} - {templatePack.name}</b>
-            {:else}
-                <p>
-                    {templatePack.category} - {templatePack.name}
-                    <button onclick={() => currentTemplateIndex = index}>
-                        Select
-                    </button>
-                </p>
-            {/if}
+            <button class="btn" onclick={() => currentTemplateIndex = index}>
+                {#if currentTemplateIndex === index}
+                    <b>{templatePack.category} - {templatePack.name}</b>
+                {:else}
+                    <p>{templatePack.category} - {templatePack.name}</p>
+                {/if}
+            </button>
         </div>
     {/each}
 </section>

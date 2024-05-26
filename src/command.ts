@@ -8,6 +8,7 @@ const INVOKE_COMMANDS = {
     getMyInfo: "get_myinfo",
     getOthersMyInfo: "get_others_myinfo",
     archivePre: "archive_pre",
+    coverUpload: "cover_up",
 }
 
 export const BackendCommands = {
@@ -29,7 +30,11 @@ export const BackendCommands = {
     
     archivePre: async (): Promise<BilibiliAPIResponse<ArchivePreResponse>> => {
         return await invoke(INVOKE_COMMANDS.archivePre);
-    }
+    },
+    
+    coverUpload: async (buffer: ArrayBuffer): Promise<string> => {
+        return await invoke(INVOKE_COMMANDS.coverUpload, {input: Array.prototype.slice.call(new Uint8Array(buffer))});
+    },
 }
 
 type ArchivePreResponse = {
@@ -88,13 +93,13 @@ let commandCache: {[key: string]: any} = {};
 export async function cacheCommand<T extends (...args: any[]) => Promise<BilibiliAPIResponse<any>>>(fn: T, args: Parameters<T>[]): ReturnType<T> {
     let cacheKey = fn.name + JSON.stringify(args);
     if (commandCache[cacheKey]){
-        console.log("cache hit", cacheKey);
+        console.debug("cache hit", cacheKey);
         return commandCache[cacheKey];
     }
     
     let resp = await fn(...args);
     if (resp.code === 0){
-        console.log("cache set", cacheKey)
+        console.debug("cache set", cacheKey)
         commandCache[cacheKey] = resp;
     }
     return resp as ReturnType<T>;
