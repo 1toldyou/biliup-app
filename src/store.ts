@@ -7,6 +7,9 @@ import {addNotification} from "./notification.js";
 // /* global state */
 export let isLoggedIn: Writable<boolean> = writable(false);  // Cannot export state from a module if it is reassigned. Either export a function returning the state value or only mutate the state value's properties
 
+export let allTemplates: Writable<{[category: string]: {[name: string]: StudioPayload}}> = writable({});
+export let activeTemplates: Writable<{category: string, name: string, data: StudioPayload}[]> = writable([]);
+
 /* file-based persistent storage */
 type TemplatesStorage = {
     template: {[name: string]: StudioPayload},
@@ -16,13 +19,7 @@ const configFileNames = {
     templates: "biliup/templates.json",
 }
 
-// export let allTemplates: Writable<StudioPayload[]> = writable([]);
-// export let allVideoEdits: Writable<StudioPayload[]> = writable([]);
-// export let allTemplates: StudioPayload[] = $state([]);
-// export let allVideoEdits: StudioPayload[] = $state([])
-export let allTemplates: Writable<{[category: string]: {[name: string]: StudioPayload}}> = writable({});
-
-export async function reloadTemplatesAndEdits() {
+export async function loadAllTemplates() {
     if (!(await exists(configFileNames.templates, {baseDir: BaseDirectory.Config}))) {
         console.log(`${configFileNames.templates} does not exist, creating...`);
         addNotification({msg: "默认模板文件不存在，创建中", type: NotificationPopMode.INFO}, false);
@@ -53,17 +50,51 @@ export async function reloadTemplatesAndEdits() {
     }
 }
 
-export async function saveTemplatesAndEdits() {
-    let templatesStorage: TemplatesStorage = {
-        template: get(allTemplates)["template"],
-        videoEdit: get(allTemplates)["videoEdits"],
-    } // TODO: check for possible undefined
+export async function saveAllTemplates() {
+    let templates = get(allTemplates);
+    let templatesStorageJSON = JSON.stringify(templates);
+    let templatesCount = 0;
+    for (let category in templates) {
+        templatesCount += Object.keys(templates[category]).length;
+    }
     
-    let templatesStorageJSON = JSON.stringify(templatesStorage);
     try {
         await writeTextFile(configFileNames.templates, templatesStorageJSON, {baseDir: BaseDirectory.Config});
     } catch (e){
         console.error("saveTemplatesAndEdits()", e);
         addNotification({msg: `模板文件写入失败: ${e}`, type: NotificationPopMode.ERROR}, true);
+    } finally {
+        addNotification({msg: `模板文件保存成功, 共计${templatesCount}个模板`, type: NotificationPopMode.INFO}, false);
     }
+}
+
+export function addToActiveTemplates(category: string, name: string, template: StudioPayload) {
+    let activeTemplatesValue = get(activeTemplates);
+    if (activeTemplatesValue.find((template) => template.category === category && template.name === name)){
+        addNotification({msg: `模板 ${category}/${name} 已经在使用中`, type: NotificationPopMode.INFO}, true);
+        return;
+    }
+    activeTemplates.update((value) => {
+        value.push({category, name, data: template});
+        return value;
+    });
+}
+
+export function removeFromActiveTemplates(category: string, name: string) {
+    activeTemplates.update((value) => {
+        return value.filter((element) => element.category !== category || element.name !== name);
+    });
+}
+
+export function saveActiveTemplate(category: string, name: string) {
+    let activeTemplatesValue = get(activeTemplates);
+    let template = activeTemplatesValue.find((template) => template.category === category && template.name === name);
+    if (!template) {
+        addNotification({msg: `模板 ${category}/${name} 不存在`, type: NotificationPopMode.INFO}, true);
+        return;
+    }
+    
+    let templates = get(allTemplates);
+    templates[category][name] = structuredClone(template.data);
+    allTemplates.set(templates);
 }
