@@ -3,6 +3,7 @@
 <script lang="ts">
     // import {createEventDispatcher} from "svelte";
     import {BackendCommands, cacheCommand} from "./command";
+    import {activeTemplates} from "./store";
 
     // BackendCommands.archivePre().then((res) => {
     //     console.log("BackendCommands.archivePre()", res);
@@ -14,19 +15,29 @@
     let currentChildCategoryID = $state(0);
     // let dispatch = createEventDispatcher();
 
+    // let {
+    //     tid = $bindable(),
+    //     parentCategoryName = $bindable(),
+    //     subCategoryName = $bindable(),
+    // }: {tid: number, parentCategoryName: string, subCategoryName: string} = $props();
+
+    $effect(() => {
+        currentChildCategoryID = $activeTemplates[templateIndex].data.tid;
+    });
+
     let {
-        tid = $bindable(),
-        parentCategoryName = $bindable(),
-        subCategoryName = $bindable(),
-    }: {tid: number, parentCategoryName: string, subCategoryName: string} = $props();
+        templateIndex = $bindable()
+    }: {templateIndex: number} = $props();
 
     function onSelectCategory(id: number, parentName: string, currentName: string) {
-        console.log("onSelectCategory()", id, parentName, currentName);
+        // console.log("onSelectCategory()", id, parentName, currentName);
         currentChildCategoryID = id;
+        // tid = id;
+        // parentCategoryName = parentName;
+        // subCategoryName = currentName;
         // dispatch("tid-selected", {tid: id, parentCategoryName: parentName, currentName: currentName});
-        tid = id;
-        parentCategoryName = parentName;
-        subCategoryName = currentName;
+        $activeTemplates[templateIndex].data.tid = id;
+        console.log(`activeTemplates[${templateIndex}].data.tid`, $activeTemplates[templateIndex].data.tid);
     }
 </script>
 

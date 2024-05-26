@@ -10,6 +10,7 @@
     import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
     import tippy, {animateFill} from "tippy.js";
     import {mount} from "svelte";
+    import {BackendCommands, cacheCommand} from "./command";
 
     let {index}: {index: number} = $props();
 
@@ -57,7 +58,7 @@
     }
 
     function vidCatTip(node) {
-        console.log("vidCatTip(node, combine)", node);
+        console.log("vidCatTip(node)", node);
         let off;
         let detail;
         let partition;
@@ -77,9 +78,7 @@
                 partition = mount(VideoCategorizingSection, {
                     target: instance.popper.firstChild.lastChild,
                     props: {
-                        tid: $activeTemplates[index].data.tid,
-                        parentCategoryName: currentParentCategoryName,
-                        subCategoryName: currentSubCategoryName
+                        templateIndex: index,
                     },
                     events: {
                         "tid": event => {
@@ -115,8 +114,24 @@
     let currentSubCategoryName = $state("");
 
     $effect(() => {
-        console.log("currentParentCategoryName", currentParentCategoryName);
-        console.log("currentSubCategoryName", currentSubCategoryName);
+        // console.log(`activeTemplates[${index}].data.tid`, $activeTemplates[index].data.tid);
+        cacheCommand(BackendCommands.archivePre, []).then((res) => {
+            if (res.code === 0) {
+                res.data.typelist.forEach((parentCategory) => {
+                    parentCategory.children.forEach((subCategory) => {
+                        if (subCategory.id === $activeTemplates[index].data.tid) {
+                            currentSubCategoryName = subCategory.name;
+                            currentParentCategoryName = parentCategory.name;
+                        }
+                    });
+                });
+            }
+            else {
+                console.error("BackendCommands.archivePre()", res);
+            }
+        }).catch((e) => {
+            console.error("BackendCommands.archivePre()", e);
+        });
     });
 </script>
 
