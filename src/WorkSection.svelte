@@ -9,7 +9,7 @@
 
 <h1>Work Section</h1>
 
-<section>
+<section class="flex">
     {#each $activeTemplates as templatePack, index}
         <div>
             {#if currentTemplateIndex === index}

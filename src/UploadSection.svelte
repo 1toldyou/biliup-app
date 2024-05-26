@@ -8,8 +8,6 @@
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
     import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
-    import tippy, {animateFill} from "tippy.js";
-    import {mount} from "svelte";
     import {BackendCommands, cacheCommand} from "./command";
 
     let {index}: {index: number} = $props();
@@ -20,6 +18,7 @@
         $activeTemplates[index].data.no_reprint = noReprintCheckbox ? 1 : 0;
     });
     let tagInput: string = $state("");
+    let showVideoCategorizingSection: boolean = $state(false);
 
     function removeTag(tag: string) {
         let currentTags = $activeTemplates[index].data.tag.split(",");
@@ -57,64 +56,12 @@
         tagInput = "";
     }
 
-    function vidCatTip(node) {
-        console.log("vidCatTip(node)", node);
-        let off;
-        let detail;
-        let partition;
-        tippy(node, {
-            arrow: false,
-            trigger: 'click',
-            allowHTML: true,
-            theme: 'light',
-            placement: 'bottom-start',
-            animateFill: true,
-            plugins: [animateFill],
-            inertia: true,
-            interactive: true,
-            onCreate(instance) {
-                console.log("onCreate(instance)", instance);
-                console.log("mount(VideoCategorizingSection), target:", instance.popper.firstChild.lastChild);
-                partition = mount(VideoCategorizingSection, {
-                    target: instance.popper.firstChild.lastChild,
-                    props: {
-                        templateIndex: index,
-                    },
-                    events: {
-                        "tid": event => {
-                            console.log("partition.$on('tid', event)", event.detail);
-                            instance.hide();
-                            detail = event.detail;
-                        }
-                    }
-                });
-            },
-            onShown(instance) {
-                // @ts-ignore
-                instance.popper.firstChild.lastChild.firstChild.firstChild.scrollTo({
-                    top: detail?.scroll[0]?.offsetTop - 3,
-                    // left: 100,
-                    behavior: 'smooth'
-                });
-                // @ts-ignore
-                instance.popper.firstChild.lastChild.firstChild.lastChild.scrollTo({
-                    top: detail?.scroll[1]?.offsetTop - 8,
-                    // left: 100,
-                    behavior: 'smooth'
-                });
-                // console.log(instance.popper.firstChild.lastChild.firstChild.firstChild.scrollTop);
-            },
-            onDestroy(instance) {
-                off();
-            },
-        });
-    }
-
     let currentParentCategoryName = $state("");
     let currentSubCategoryName = $state("");
 
     $effect(() => {
         // console.log(`activeTemplates[${index}].data.tid`, $activeTemplates[index].data.tid);
+        console.log("update currentParentCategoryName and currentSubCategoryName from", $activeTemplates[index].data.tid);
         cacheCommand(BackendCommands.archivePre, []).then((res) => {
             if (res.code === 0) {
                 res.data.typelist.forEach((parentCategory) => {
@@ -125,6 +72,7 @@
                         }
                     });
                 });
+                console.log(`activeTemplates[${index}]: ${currentParentCategoryName} → ${currentSubCategoryName}, tid = ${$activeTemplates[index].data.tid}`);
             }
             else {
                 console.error("BackendCommands.archivePre()", res);
@@ -183,9 +131,10 @@
     {/if}
 </section>
 
-<section class="flex w-52" use:vidCatTip={{}}>
+<section class="">
     <button class="border border-gray-300 relative w-full bg-white rounded-md pl-3 pr-10 py-3 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             type="button"
+            onclick={()=> showVideoCategorizingSection = !showVideoCategorizingSection}
     >
         <span class="flex items-center">
             <span class="ml-1 block truncate">
@@ -198,6 +147,10 @@
             </svg>
         </span>
     </button>
+
+    {#if showVideoCategorizingSection}
+        <VideoCategorizingSection bind:templateIndex={index} />
+    {/if}
 </section>
 
 <section class="flex flex-wrap rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent">
