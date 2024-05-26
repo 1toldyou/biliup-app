@@ -7,6 +7,7 @@
     import {contentLimitation, CopyrightType} from "./lib/constants";
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
+    import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
 
     let {index}: {index: number} = $props();
 
@@ -103,7 +104,7 @@
 </section>
 
 <section>
-    <p>分区</p>
+    <VideoCategorizingSection/>
 </section>
 
 <section class="flex flex-wrap rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent">

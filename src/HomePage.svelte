@@ -1,8 +1,11 @@
+<svelte:options runes={true} />
+
+
 <script lang="ts">
     import {BackendCommands} from "./command";
-    import {addNotification} from "./notification.js";
+    import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
-    import {allTemplates, loadAllTemplates} from "./store.js";
+    import {allTemplates, loadAllTemplates} from "./store";
     import TemplatesList from "./TemplatesListSection.svelte";
     import WorkSection from "./WorkSection.svelte";
 
@@ -15,25 +18,25 @@
 
     loadAllTemplates();
 
-    $: console.log("$allTemplates", $allTemplates);
+    $effect(() => console.log("$allTemplates", $allTemplates));
 </script>
 
-<h1>Home Page</h1>
-
-<div>
-    <button
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onclick={() => addNotification({type: NotificationPopMode.INFO, msg: "A INFO Notification"}, true)}
-    >
-        Add Pop
-    </button>
-    <button
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onclick={() => addNotification({type: NotificationPopMode.ERROR, msg: "A ERROR Notification"}, true)}
-    >
-        Add Error Pop
-    </button>
-</div>
+<!--<section>-->
+<!--    <h1>Home Page</h1>-->
+<!--    -->
+<!--    <button-->
+<!--            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"-->
+<!--            onclick={() => addNotification({type: NotificationPopMode.INFO, msg: "A INFO Notification"}, true)}-->
+<!--    >-->
+<!--        Add Pop-->
+<!--    </button>-->
+<!--    <button-->
+<!--            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"-->
+<!--            onclick={() => addNotification({type: NotificationPopMode.ERROR, msg: "A ERROR Notification"}, true)}-->
+<!--    >-->
+<!--        Add Error Pop-->
+<!--    </button>-->
+<!--</section>-->
 
 <div class="flex items-start">
     <div class="flex-none w-1/3" style="border:1px solid black">
