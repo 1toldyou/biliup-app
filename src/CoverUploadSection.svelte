@@ -3,16 +3,16 @@
 <script lang="ts">
     import {confirm} from "@tauri-apps/plugin-dialog";
     import {fetch} from "@tauri-apps/plugin-http";  // need to use tauri fetch for hot linking
-    import type { FilePond as FilePondInstance, FilePondOptions, FilePondServerConfigProps } from "filepond";
+    import type {FilePond as FilePondInstance, FilePondFile, FilePondServerConfigProps} from "filepond";
     import FilePond, {registerPlugin} from "svelte-filepond";
-    import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
-    import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
-    import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
-    import 'filepond/dist/filepond.css';
-    import 'filepond-plugin-image-edit/dist/filepond-plugin-image-edit.css';
+    import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
+    import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+    import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
+    import "filepond/dist/filepond.css";
+    import "filepond-plugin-image-edit/dist/filepond-plugin-image-edit.css";
     import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 
-    import {BackendCommands, cacheCommand} from "./command";
+    import {BackendCommands} from "./command";
     import {activeTemplates} from "./store";
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
@@ -21,7 +21,7 @@
         templateIndex = $bindable()
     }: {templateIndex: number} = $props();
 
-    let pond;
+    let pond: FilePondInstance;
     let filePondName = "cover-pond";
     let filePondLabelIdle = `<span class="filepond--label-action">选择</span>并上传视频封面`;
 
@@ -134,13 +134,15 @@
         console.log(`Cover for ${templateIndex} updated to`, $activeTemplates[templateIndex].data.cover);
     });
 
-    async function handleRemoveFile(...args: any[]) { // this being fired even the remove button is not clicked
-        console.log("handleRemoveFile(...args)", args);
-        if (!(await confirm(`确定要移除封面吗?`))) {
+    // $effect(() => console.log("pond", pond));
+
+    async function removeFile() {
+        if (!(await confirm("确定要移除封面吗？"))) {
             return;
         }
+
+        pond.removeFiles();
         $activeTemplates[templateIndex].data.cover = "";
-        console.log("FilPond: A file has been removed");
     }
 </script>
 
@@ -151,7 +153,11 @@
           server={filepondServer}
           files={uploadedCover}
           credits={false}
-          onremovefile={handleRemoveFile}
           acceptedFileTypes="image/png, image/jpeg, image/gif"
+          beforeRemoveFile={(item: FilePondFile) => {
+              return false;  // it will be removed when switch to another template, even without pressing the built-in remove button
+          }}
+          iconRemove=""
 />
+<button class="btn" onclick={removeFile}>移除封面</button>
 <p>Cover: {$activeTemplates[templateIndex].data.cover}</p>
