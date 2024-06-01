@@ -8,6 +8,7 @@
 	import Home from "./HomePage.svelte";
     import Modal from "./lib/Modal.svelte";
     import {NotificationPopMode} from "./type";
+    import {BackendCommands} from "./command";
 
     window["biliup-debug"] = () => {
         console.log("isLoggedIn", isLoggedIn);
@@ -15,6 +16,8 @@
         console.log("$allTemplates", $allTemplates);
         console.log("$activeTemplates", $activeTemplates);
     }
+
+    window["biliup-command"] = BackendCommands;
 </script>
 
 <main class="bg-gradient-to-b from-[#fefefe] to-[#e7f9f4]"

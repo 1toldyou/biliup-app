@@ -6,11 +6,21 @@
    import {addToActiveTemplates, allTemplates, makeBlankTemplate, saveAllTemplates} from "./store";
    import {NotificationPopMode, type StudioPayload} from "./type";
    import {addNotification} from "./notification";
+   import {BackendCommands} from "./command";
 
    let currentTemplateCategory: string = $state("template");
    let newTemplateName: string = $state("");
 
-   function addTemplate(name: string, template: StudioPayload) {
+   function addNewTemplateOrExistingVideo(name: string){
+      if (/((av|AV)\d+)|(BV[0-9a-zA-Z]{10}$)/.test(name)) {
+         addExistingVideo(name);
+      }
+      else {
+         addNewTemplate(name, makeBlankTemplate("test template"));
+      }
+   }
+
+   function addNewTemplate(name: string, template: StudioPayload) {
       if (name === "") {
          addNotification({msg: `Template name cannot be empty`, type: NotificationPopMode.ERROR}, true);
          return;
@@ -25,6 +35,18 @@
       console.log(`Added template ${name} to category ${currentTemplateCategory}`);
 
       saveAllTemplates();
+   }
+
+   async function addExistingVideo(videoID: string){
+      if (!(await BackendCommands.isVid(videoID))) {
+         addNotification({msg: `${videoID} is not a valid av number or BV ID`, type: NotificationPopMode.ERROR}, true);
+         return;
+      }
+
+      $allTemplates[currentTemplateCategory][videoID] = await BackendCommands.getExistingVideo(videoID);
+      console.log(`Added template ${videoID} to category ${currentTemplateCategory}`);
+
+      await saveAllTemplates();
    }
 
    async function removeTemplate(name: string) {
@@ -113,7 +135,7 @@
       {/each}
 
       <input type="text" bind:value={newTemplateName} placeholder="模板名称" />
-      <button onclick={() => addTemplate(newTemplateName, makeBlankTemplate("test template"))}>Add Template</button>
+      <button onclick={() => addNewTemplateOrExistingVideo(newTemplateName)}>Add Template</button>
    {:else}
         <p>No templates in category "{currentTemplateCategory}"</p>
    {/if}

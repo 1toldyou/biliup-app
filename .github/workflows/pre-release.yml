@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "pre-release"
+      - "remake"
 
 jobs:
   publish-tauri:

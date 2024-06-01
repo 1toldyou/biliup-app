@@ -1,6 +1,6 @@
 import {invoke} from "@tauri-apps/api/core";
 import {listen} from "@tauri-apps/api/event";
-import type {BilibiliAPIResponse, VideoPayload} from "./type";
+import type {BilibiliAPIResponse, StudioPayload, VideoPayload} from "./type";
 import {activeTemplates} from "./store";
 
 const INVOKE_COMMANDS = {
@@ -12,6 +12,7 @@ const INVOKE_COMMANDS = {
     archivePre: "archive_pre",
     coverUpload: "cover_up",
     uploadVideo: "upload_video_v2",
+    getExistingVideo: "get_existing_video",
 }
 
 const LISTEN_EVENT_NAMES = {
@@ -44,9 +45,17 @@ export const BackendCommands = {
         return await invoke(INVOKE_COMMANDS.coverUpload, {input: Array.prototype.slice.call(new Uint8Array(buffer))});
     },
     
-    uploadVideo: async (video: VideoPayload, id: string): Promise<BilibiliAPIResponse<VideoPayload>> => {
+    uploadVideo: async (video: VideoPayload, id: string): Promise<VideoPayload> => {
         return await invoke(INVOKE_COMMANDS.uploadVideo, {video, id});
-    }
+    },
+    
+    isVid: async (input: string): Promise<boolean> => {
+        return await invoke("is_vid", {input});
+    },
+    
+    getExistingVideo: async (input: string): Promise<StudioPayload> => {
+        return await invoke(INVOKE_COMMANDS.getExistingVideo, {input});
+    },
 }
 
 type ArchivePreResponse = {
@@ -121,7 +130,7 @@ export function setupBackendEventListening(){
     console.log("setupBackendEventListening()");
     listen(LISTEN_EVENT_NAMES.uploadProgressUpdate, (event: {payload: any[]}) => {
         let [id, uploadedSize, totalSize] = event.payload;
-        console.log("uploadProgressUpdate", id, uploadedSize, totalSize);
+        // console.log("uploadProgressUpdate", id, uploadedSize, totalSize);
         let updated = false;
         activeTemplates.update((currentTemplates) => {
             currentTemplates.forEach(template => {
@@ -146,7 +155,7 @@ export function setupBackendEventListening(){
     
     listen(LISTEN_EVENT_NAMES.uploadSpeedUpdate, (event: {payload: any[]}) => {
         let [id, speed] = event.payload;
-        console.log("uploadSpeedUpdate", id, speed);
+        // console.log("uploadSpeedUpdate", id, speed);
         let updated = false;
         activeTemplates.update((currentTemplates) => {
             currentTemplates.forEach(template => {

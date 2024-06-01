@@ -95,6 +95,6 @@ type SubtitlePayload = {
 
 export type VideoPayload = {
     title: string | null,
-    filename: string,
+    filename: string, // the filename used by bilibili internally, not the filename on disk
     desc: string,
 };

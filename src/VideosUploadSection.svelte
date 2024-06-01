@@ -24,10 +24,6 @@
 
     }
 
-    function attach(files: {name: string, path: string}[]) {
-        console.log("attach()", files);
-    }
-
     function handleDndConsider(e: any) {
         console.log("handleDndConsider()", e);
         // items = e.detail.items;
@@ -65,7 +61,7 @@
     function makeFileID(filename: string): string {
         // remove things other than alphanumeric characters, `-`, `/`, `:` and `_`.
         filename = filename.replace(/[^a-zA-Z0-9\-\/:_]/g, "");
-        return `${filename}-${Date.now()}`;
+        return `${Date.now()}-${filename}`;
     }
 
     async function uploadVideos(files: {filename: string, absolutePath: string}[]) {
@@ -109,14 +105,18 @@
                     {
                         id: fileID,
                         title: eachVideo.filename,
-                        filename: eachVideo.filename,
-                        path: eachVideo.absolutePath,
+                        filename: "",
+                        absolutePath: eachVideo.absolutePath,
                         progress: 0,
                         speed: 0,
                         totalSize: 0,
                         started: true,
                         startTimestamp: Date.now(),
                         speedUploaded: 0, // necessary for speed calculation
+                        size: 0,
+                        desc: "",
+                        uploadedSize: 0,
+                        completed: false,
                     }
                 ];
                 return templates;
@@ -126,8 +126,29 @@
     }
 
     async function uploadSingleVideo(v: {title: string, filename: string, desc: string}, id: string) {
-        console.log("uploadSingleVideo()", v, id);
-        await BackendCommands.uploadVideo({title: v.title, filename: v.filename, desc: v.desc}, id);
+        console.log(`uploadSingleVideo() for ${id}`, v );
+        try {
+            let resp = await BackendCommands.uploadVideo({title: v.title, filename: v.filename, desc: v.desc}, id);
+            console.log(`uploadSingleVideo() done for ${id}`, resp);
+            // TODO: handle the response
+
+            activeTemplates.update((allTemplates) => {
+                allTemplates.forEach((template) => { // finding in all templates in case the template is not currently selected
+                    template.data.files.forEach((file) => {
+                        if (file.id === id) {
+                            file.filename = resp.filename;
+                            file.progress = 100;
+                            file.completed = true;
+                            addNotification({type: NotificationPopMode.INFO, msg: `${v.title} 上传成功`}, true);
+                        }
+                    });
+                });
+                return allTemplates;
+            });
+        } catch (e) {
+            console.error(`uploadSingleVideo() failed for ${id}`, e);
+            addNotification({type: NotificationPopMode.ERROR, msg: `${v.title} 上传失败: ${e}`}, true);
+        }
     }
 
     async function removeVideo(videoID: string) {
@@ -152,11 +173,18 @@
             {
                 id: makeFileID(`example ${$activeTemplates[templateIndex].data.files.length + 1}`),
                 title: `example ${$activeTemplates[templateIndex].data.files.length + 1}`,
-                filename: `example${$activeTemplates[templateIndex].data.files.length + 1}.mp4`,
-                path: "",
+                filename: "",
+                absolutePath: `example${$activeTemplates[templateIndex].data.files.length + 1}.mp4`,
                 progress: Math.random() * 100,
                 speed: Math.random() * 10,
                 totalSize: Math.random() * 100000000,
+                size: 0,
+                desc: "",
+                completed: false,
+                uploadedSize: 0,
+                speedUploaded: 0,
+                startTimestamp: 0,
+                started: false,
             }
         ];
     }

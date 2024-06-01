@@ -274,11 +274,18 @@ async fn cover_up(
 
 #[tauri::command]
 fn is_vid(input: &str) -> bool {
+    if input.len() < 2 {
+        return false;
+    }
     biliup::uploader::bilibili::Vid::from_str(input).is_ok()
 }
 
 #[tauri::command]
-async fn show_video(app: tauri::AppHandle, input: &str, credential: tauri::State<'_, Credential>) -> Result<Studio> {
+async fn get_existing_video(app: tauri::AppHandle, input: &str, credential: tauri::State<'_, Credential>) -> Result<Studio> {
+        if !is_vid(input) { // temporary fix until biliup-rs implements input validation in Vid::from_str()
+        return Err(Error::Err("vid格式错误".into()));
+    }
+
     let login_info = &*credential.get_current_user_credential(&app).await?;
     let data = login_info
         .video_data(&biliup::uploader::bilibili::Vid::from_str(input)?)
@@ -356,7 +363,7 @@ fn main() {
             get_others_myinfo,
             cover_up,
             is_vid,
-            show_video,
+            get_existing_video,
             edit_video,
             log,
             logout,
@@ -432,7 +439,7 @@ async fn upload_video_v2(
     let video_file = VideoFile::new(&filepath)?;
     let total_size = video_file.total_size;
     let parcel = probe.pre_upload(bili, video_file).await?;
-    let (tx, mut rx) = mpsc::unbounded_channel();
+    let (tx1, mut rx1) = mpsc::unbounded_channel();
     let (tx2, mut rx2) = mpsc::unbounded_channel();
     // let (tx, mut rx) = mpsc::channel(1);
     let mut uploaded = 0;
@@ -441,7 +448,7 @@ async fn upload_video_v2(
             let chunk = chunk?;
             let len = chunk.len();
             uploaded += len;
-            tx.send(uploaded).unwrap();
+            tx1.send(uploaded).unwrap();
             let progressbar = Progressbar::new(chunk, tx2.clone());
             Ok((progressbar, len))
         })
@@ -463,7 +470,7 @@ async fn upload_video_v2(
     //使用progressbar返回上传进度遇到错误触发重传时，会重新往channel2中写入信息，导致进度条超过100%，故使用channel1来传输进度。
     //而channel1每10MB左右才会传输一次进度，故保留channel1的信息来计算速度。
     tokio::spawn(async move {
-        while let Some(uploaded) = rx.recv().await {
+        while let Some(uploaded) = rx1.recv().await {
             window
                 .emit("upload-progress-update", (&id_1, uploaded, total_size))
                 .unwrap();
