@@ -61,6 +61,24 @@ export type StudioPayload = {
     up_selection_reply: boolean,
     up_close_reply: boolean,
     up_close_danmu: boolean,
+};
+
+export type StudioExtra = {
+    files: {
+        id: string, // something unique that can be used to distinguish the file when multiple templates are uploading the same file
+        filename: string,
+        absolutePath: string,
+        size: number,
+        title: string,
+        desc: string,
+        completed: boolean,
+        speed: number,
+        progress: number,
+        uploadedSize: number,
+        totalSize: number,
+        speedUploaded: number, // don't know what this is
+        startTimestamp: number,
+    }[],
 }
 
 type CreditPayload = {
@@ -74,7 +92,7 @@ type SubtitlePayload = {
     lan: string,
 };
 
-type VideoPayload = {
+export type VideoPayload = {
     title: string | null,
     filename: string,
     desc: string,

@@ -361,7 +361,8 @@ fn main() {
             log,
             logout,
             list_accounts,
-            login_by_cookie_file
+            login_by_cookie_file,
+            upload_video_v2,
         ])
         .manage(Credential::default())
         .run(tauri::generate_context!())
@@ -398,4 +399,82 @@ async fn login_by_cookie_file(app: tauri::AppHandle, credential: tauri::State<'_
     credential.clear(); // logout
     credential.get_specific_user_credential(&app, cookie_filename).await?;
     Ok("登录成功".into())
+}
+
+#[tauri::command]
+async fn upload_video_v2(
+    app: tauri::AppHandle,
+    window: Window,
+    credential: tauri::State<'_, Credential>,
+    mut video: Video,
+    id: String,
+) -> Result<Video> {
+    let bili = &*credential.get_current_user_credential(&app).await?;
+
+    let config = load(app.clone())?;
+    let probe = if let Some(line) = config.line {
+        match line.as_str() {
+            "kodo" => line::kodo(),
+            "bda2" => line::bda2(),
+            "ws" => line::ws(),
+            "qn" => line::qn(),
+            "cos" => line::cos(),
+            "cos-internal" => line::cos_internal(),
+            _ => unreachable!(),
+        }
+    } else {
+        line::Probe::probe(&bili.client).await?
+    };
+    let limit = config.limit;
+
+    let filename = video.filename;
+    let filepath = PathBuf::from(&filename);
+    let video_file = VideoFile::new(&filepath)?;
+    let total_size = video_file.total_size;
+    let parcel = probe.pre_upload(bili, video_file).await?;
+    let (tx, mut rx) = mpsc::unbounded_channel();
+    let (tx2, mut rx2) = mpsc::unbounded_channel();
+    // let (tx, mut rx) = mpsc::channel(1);
+    let mut uploaded = 0;
+    let f_video = parcel.upload(StatelessClient::default(), limit, |vs| {
+        vs.map(|chunk| {
+            let chunk = chunk?;
+            let len = chunk.len();
+            uploaded += len;
+            tx.send(uploaded).unwrap();
+            let progressbar = Progressbar::new(chunk, tx2.clone());
+            Ok((progressbar, len))
+        })
+    });
+    let (a_video, abort_handle) = abortable(f_video);
+    let _id = window.once(
+        id.clone(),
+        move |event| {
+            abort_handle.abort();
+            println!("got window event-name with payload {:?}", event.payload());
+            // is_remove.store(false, Ordering::Relaxed);
+        },
+    );
+
+    let w2 = window.clone();
+    let id_1 = id.clone();
+    let id_2 = id.clone();
+    //fixme
+    //使用progressbar返回上传进度遇到错误触发重传时，会重新往channel2中写入信息，导致进度条超过100%，故使用channel1来传输进度。
+    //而channel1每10MB左右才会传输一次进度，故保留channel1的信息来计算速度。
+    tokio::spawn(async move {
+        while let Some(uploaded) = rx.recv().await {
+            window
+                .emit("upload-progress-update", (&id_1, uploaded, total_size))
+                .unwrap();
+        }
+    });
+    tokio::spawn(async move {
+        while let Some(len) = rx2.recv().await {
+            w2.emit("upload-speed-update", (&id_2, len, total_size)).unwrap();
+        }
+    });
+    video = a_video.await??;
+    println!("上传成功");
+    Ok(video)
 }

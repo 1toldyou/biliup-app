@@ -3,10 +3,9 @@
 <script lang="ts">
    import {confirm} from "@tauri-apps/plugin-dialog";
 
-   import {addToActiveTemplates, allTemplates, saveAllTemplates} from "./store";
+   import {addToActiveTemplates, allTemplates, makeBlankTemplate, saveAllTemplates} from "./store";
    import {NotificationPopMode, type StudioPayload} from "./type";
    import {addNotification} from "./notification";
-   import {CopyrightType} from "./lib/constants";
 
    let currentTemplateCategory: string = $state("template");
    let newTemplateName: string = $state("");
@@ -26,38 +25,6 @@
       console.log(`Added template ${name} to category ${currentTemplateCategory}`);
 
       saveAllTemplates();
-   }
-
-   function makeBlankTemplate(name: string): StudioPayload {
-      return {
-         aid: null,
-         copyright: CopyrightType.original,
-         cover: "",
-         desc: "",
-         desc_format_id: 0,
-         desc_v2: null,
-         dolby: 0,
-         dtime: null,
-         dynamic: "",
-         interactive: 0,
-         lossless_music: 0,
-         mission_id: null,
-         no_reprint: 1,
-         open_elec: 0,
-         open_subtitle: false,
-         source: "",
-         subtitle: {
-            open: 0,
-            lan: ""
-         },
-         tag: "",
-         tid: 0,
-         title: name,
-         up_close_danmu: false,
-         up_close_reply: false,
-         up_selection_reply: false,
-         videos: []
-      };
    }
 
    async function removeTemplate(name: string) {

@@ -65,4 +65,7 @@ however, if there is a need to switch account, must call `invoke("logout")` or `
 
 
 #### Interact with external services
-To avoid CORS issues, all requests are made by the backend
+To avoid CORS issues, all requests are made by the backend.
+
+But there are still some fetching happening on the frontend, such as loading images, 
+but it's using tauri's `fetch()` from `@tauri-apps/plugin-http` instead of `window.fetch()`, to avoid having issue with request referrer.

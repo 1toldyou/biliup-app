@@ -1,22 +1,56 @@
 import {get, type Writable, writable} from "svelte/store";
 import {BaseDirectory, exists, readTextFile, writeTextFile} from "@tauri-apps/plugin-fs";
 
-import {NotificationPopMode, type StudioPayload} from "./type";
+import {NotificationPopMode, type StudioExtra, type StudioPayload} from "./type";
 import {addNotification} from "./notification.js";
+import {CopyrightType} from "./lib/constants";
 
 // /* global state */
 export let isLoggedIn: Writable<boolean> = writable(false);  // Cannot export state from a module if it is reassigned. Either export a function returning the state value or only mutate the state value's properties
 
 export let allTemplates: Writable<{[category: string]: {[name: string]: StudioPayload}}> = writable({});
-export let activeTemplates: Writable<{category: string, name: string, data: StudioPayload}[]> = writable([]);
+export let activeTemplates: Writable<{category: string, name: string, data: StudioPayload & StudioExtra}[]> = writable([]);
 
 /* file-based persistent storage */
 type TemplatesStorage = {
     template: {[name: string]: StudioPayload},
     videoEdit: {[name: string]: StudioPayload},
+    [category: string]: {[name: string]: StudioPayload},
 }
 const configFileNames = {
     templates: "biliup/templates.json",
+}
+
+export function makeBlankTemplate(name: string): StudioPayload {
+    return {
+        aid: null,
+        copyright: CopyrightType.original,
+        cover: "",
+        desc: "",
+        desc_format_id: 0,
+        desc_v2: null,
+        dolby: 0,
+        dtime: null,
+        dynamic: "",
+        interactive: 0,
+        lossless_music: 0,
+        mission_id: null,
+        no_reprint: 1,
+        open_elec: 0,
+        open_subtitle: false,
+        source: "",
+        subtitle: {
+            open: 0,
+            lan: ""
+        },
+        tag: "",
+        tid: 0,
+        title: name,
+        up_close_danmu: false,
+        up_close_reply: false,
+        up_selection_reply: false,
+        videos: [],
+    };
 }
 
 export async function loadAllTemplates() {
@@ -75,7 +109,11 @@ export function addToActiveTemplates(category: string, name: string, template: S
         return;
     }
     activeTemplates.update((value) => {
-        value.push({category, name, data: template});
+        let activeTemplate: StudioPayload & StudioExtra = {
+            ...template,
+            files: [],
+        }
+        value.push({category, name, data: activeTemplate});
         return value;
     });
 }

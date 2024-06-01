@@ -1,5 +1,7 @@
-import {invoke} from '@tauri-apps/api/core';
-import type {BilibiliAPIResponse} from "./type";
+import {invoke} from "@tauri-apps/api/core";
+import {listen} from "@tauri-apps/api/event";
+import type {BilibiliAPIResponse, VideoPayload} from "./type";
+import {activeTemplates} from "./store";
 
 const INVOKE_COMMANDS = {
     log: "log",
@@ -9,6 +11,12 @@ const INVOKE_COMMANDS = {
     getOthersMyInfo: "get_others_myinfo",
     archivePre: "archive_pre",
     coverUpload: "cover_up",
+    uploadVideo: "upload_video_v2",
+}
+
+const LISTEN_EVENT_NAMES = {
+    uploadProgressUpdate: "upload-progress-update",
+    uploadSpeedUpdate: "upload-speed-update",
 }
 
 export const BackendCommands = {
@@ -35,6 +43,10 @@ export const BackendCommands = {
     coverUpload: async (buffer: ArrayBuffer): Promise<string> => {
         return await invoke(INVOKE_COMMANDS.coverUpload, {input: Array.prototype.slice.call(new Uint8Array(buffer))});
     },
+    
+    uploadVideo: async (video: VideoPayload, id: string): Promise<BilibiliAPIResponse<VideoPayload>> => {
+        return await invoke(INVOKE_COMMANDS.uploadVideo, {video, id});
+    }
 }
 
 type ArchivePreResponse = {
@@ -103,4 +115,46 @@ export async function cacheCommand<T extends (...args: any[]) => Promise<Bilibil
         commandCache[cacheKey] = resp;
     }
     return resp as ReturnType<T>;
+}
+
+export function setupBackendEventListening(){
+    listen(LISTEN_EVENT_NAMES.uploadProgressUpdate, (event: {payload: any[]}) => {
+        activeTemplates.update((current) => {
+            current.forEach(template => {
+                template.data.files.forEach(file => {
+                    if (file.id === event.payload[0]){
+                        file.uploadedSize = event.payload[1];
+                        file.totalSize = event.payload[2];
+                        // file.progress.ldBar.set(Math.round(event.payload[1] * 100) / 100);
+                        file.progress = file.uploadedSize / file.totalSize * 100;
+                        if (Math.round(file.progress * 100) === 10000) file.completed = true;
+                        return current;
+                    }
+                });
+            });
+            console.warn(`${LISTEN_EVENT_NAMES.uploadProgressUpdate} received but file not found`, event.payload[0]);
+            return current;
+        });
+    }).then(() => {
+        console.log(`listen(${LISTEN_EVENT_NAMES.uploadProgressUpdate}) registered`);
+    });
+    
+    listen(LISTEN_EVENT_NAMES.uploadSpeedUpdate, (event: {payload: any[]}) => {
+        activeTemplates.update((current) => {
+            current.forEach(template => {
+                template.data.files.forEach(file => {
+                    if (file.id === event.payload[0]){
+                        const millis = Date.now() - file.startTimestamp;
+                        file.speedUploaded += event.payload[1];
+                        file.speed = file.speedUploaded / 1000 / millis;
+                        return current;
+                    }
+                });
+            });
+            console.warn(`${LISTEN_EVENT_NAMES.uploadSpeedUpdate} received but file not found`, event.payload[0]);
+            return current;
+        });
+    }).then(() => {
+        console.log(`listen(${LISTEN_EVENT_NAMES.uploadSpeedUpdate}) registered`);
+    });
 }

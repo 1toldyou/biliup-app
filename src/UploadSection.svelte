@@ -10,6 +10,7 @@
     import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
     import {BackendCommands, cacheCommand} from "./command";
     import CoverUploadSection from "./CoverUploadSection.svelte";
+    import VideosUploadSection from "./VideosUploadSection.svelte";
 
     let {index}: {index: number} = $props();
 
@@ -94,6 +95,10 @@
     {:else}
         <input class="w-full bg-white-100 border border-gray-300" type="text" bind:value={$activeTemplates[index].data.title} placeholder="标题，长度限制{contentLimitation.titleLength}个字符">
     {/if}
+</section>
+
+<section>
+    <VideosUploadSection bind:templateIndex={index} />
 </section>
 
 <section>

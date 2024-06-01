@@ -2,7 +2,7 @@
 
 
 <script lang="ts">
-    import {BackendCommands} from "./command";
+    import {BackendCommands, setupBackendEventListening} from "./command";
     import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
     import {allTemplates, loadAllTemplates} from "./store";
@@ -19,6 +19,8 @@
     loadAllTemplates();
 
     $effect(() => console.log("$allTemplates", $allTemplates));
+
+    setupBackendEventListening();
 </script>
 
 <!--<section>-->

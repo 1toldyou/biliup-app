@@ -24,3 +24,5 @@ export enum CopyrightType {
     original = 1,
     reprint = 2,
 }
+
+export const videoExtensions = ["mp4", "flv", "avi", "wmv", "mov", "webm", "mpeg4", "ts", "mpg", "rm", "rmvb", "mkv", "m4v"];
