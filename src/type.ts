@@ -78,6 +78,7 @@ export type StudioExtra = {
         totalSize: number,
         speedUploaded: number, // don't know what this is
         startTimestamp: number,
+        started: boolean,
     }[],
 }
 

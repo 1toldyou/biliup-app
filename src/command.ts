@@ -118,43 +118,55 @@ export async function cacheCommand<T extends (...args: any[]) => Promise<Bilibil
 }
 
 export function setupBackendEventListening(){
+    console.log("setupBackendEventListening()");
     listen(LISTEN_EVENT_NAMES.uploadProgressUpdate, (event: {payload: any[]}) => {
-        activeTemplates.update((current) => {
-            current.forEach(template => {
+        let [id, uploadedSize, totalSize] = event.payload;
+        console.log("uploadProgressUpdate", id, uploadedSize, totalSize);
+        let updated = false;
+        activeTemplates.update((currentTemplates) => {
+            currentTemplates.forEach(template => {
                 template.data.files.forEach(file => {
-                    if (file.id === event.payload[0]){
-                        file.uploadedSize = event.payload[1];
-                        file.totalSize = event.payload[2];
-                        // file.progress.ldBar.set(Math.round(event.payload[1] * 100) / 100);
-                        file.progress = file.uploadedSize / file.totalSize * 100;
+                    if (file.id === id){
+                        file.uploadedSize = uploadedSize;
+                        file.totalSize = totalSize;
+                        file.progress = uploadedSize / totalSize * 100;
                         if (Math.round(file.progress * 100) === 10000) file.completed = true;
-                        return current;
+                        updated = true;
+                        // console.log("progress updated for", file.id, file.progress, file.completed);
+                        // return currentTemplates;
                     }
                 });
             });
-            console.warn(`${LISTEN_EVENT_NAMES.uploadProgressUpdate} received but file not found`, event.payload[0]);
-            return current;
+            if (!updated) console.warn(`${LISTEN_EVENT_NAMES.uploadProgressUpdate} received but file not found`, event.payload[0]);
+            return currentTemplates;
         });
     }).then(() => {
         console.log(`listen(${LISTEN_EVENT_NAMES.uploadProgressUpdate}) registered`);
     });
     
     listen(LISTEN_EVENT_NAMES.uploadSpeedUpdate, (event: {payload: any[]}) => {
-        activeTemplates.update((current) => {
-            current.forEach(template => {
+        let [id, speed] = event.payload;
+        console.log("uploadSpeedUpdate", id, speed);
+        let updated = false;
+        activeTemplates.update((currentTemplates) => {
+            currentTemplates.forEach(template => {
                 template.data.files.forEach(file => {
-                    if (file.id === event.payload[0]){
+                    if (file.id === id){
                         const millis = Date.now() - file.startTimestamp;
-                        file.speedUploaded += event.payload[1];
+                        file.speedUploaded += speed;
+                        // console.log(`${file.speedUploaded} / 1000 / ${millis} = ${file.speedUploaded / 1000 / millis}`);
                         file.speed = file.speedUploaded / 1000 / millis;
-                        return current;
+                        updated = true;
+                        // console.log("speed updated for", file.id, file.speed);
+                        // return currentTemplates;
                     }
                 });
             });
-            console.warn(`${LISTEN_EVENT_NAMES.uploadSpeedUpdate} received but file not found`, event.payload[0]);
-            return current;
+            if (!updated) console.warn(`${LISTEN_EVENT_NAMES.uploadSpeedUpdate} received but file not found`, event.payload[0]);
+            return currentTemplates;
         });
     }).then(() => {
         console.log(`listen(${LISTEN_EVENT_NAMES.uploadSpeedUpdate}) registered`);
     });
+    console.log("setupBackendEventListening() done");
 }

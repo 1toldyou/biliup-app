@@ -63,6 +63,8 @@
     }
 
     function makeFileID(filename: string): string {
+        // remove things other than alphanumeric characters, `-`, `/`, `:` and `_`.
+        filename = filename.replace(/[^a-zA-Z0-9\-\/:_]/g, "");
         return `${filename}-${Date.now()}`;
     }
 
@@ -75,24 +77,57 @@
             }
         });
 
-        // check if the file is already selected
+        // check if the file is already selected or uploaded
         let toUpload: {filename: string, absolutePath: string}[] = [];
-        $activeTemplates[templateIndex].data.files.forEach((file) => {
-            if (files.some((f) => f.filename === file.filename)) {
+        files.forEach((file) => {
+            if ($activeTemplates[templateIndex].data.files.some((f) => f.filename === file.filename)) {
                 console.log("file already selected", file);
-            } else {
+            }
+            else {
                 toUpload.push(file);
             }
         });
+        console.log("toUpload", toUpload);
 
         if (toUpload.length === 0) {
-            addNotification({type: NotificationPopMode.INFO, msg: "没有新文件需要上传"}, false);
+            addNotification({type: NotificationPopMode.INFO, msg: "没有新文件需要上传"}, true);
             return;
+        }
+        else {
+            addNotification({type: NotificationPopMode.INFO, msg: `需要上传 ${toUpload.length} 个文件`}, true);
         }
 
         for (let eachVideo of toUpload) {
-
+            addNotification({type: NotificationPopMode.INFO, msg: `开始上传 ${eachVideo.filename}`}, false);
+            let fileID = makeFileID(eachVideo.filename);
+            uploadSingleVideo({title: eachVideo.filename, filename: eachVideo.absolutePath, desc: ""}, fileID).then(()=>{
+                console.log("uploadSingleVideo() done", fileID);
+            });
+            activeTemplates.update((templates) => {
+                templates[templateIndex].data.files = [
+                    ...templates[templateIndex].data.files,
+                    {
+                        id: fileID,
+                        title: eachVideo.filename,
+                        filename: eachVideo.filename,
+                        path: eachVideo.absolutePath,
+                        progress: 0,
+                        speed: 0,
+                        totalSize: 0,
+                        started: true,
+                        startTimestamp: Date.now(),
+                        speedUploaded: 0, // necessary for speed calculation
+                    }
+                ];
+                return templates;
+            });
         }
+        console.log("uploadVideos() done");
+    }
+
+    async function uploadSingleVideo(v: {title: string, filename: string, desc: string}, id: string) {
+        console.log("uploadSingleVideo()", v, id);
+        await BackendCommands.uploadVideo({title: v.title, filename: v.filename, desc: v.desc}, id);
     }
 
     async function removeVideo(videoID: string) {
