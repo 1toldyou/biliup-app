@@ -6,13 +6,13 @@
    import {addToActiveTemplates, allTemplates, makeBlankTemplate, saveAllTemplates} from "./store";
    import {NotificationPopMode, type StudioPayload} from "./type";
    import {addNotification} from "./notification";
-   import {BackendCommands} from "./command";
+   import {BackendCommands, isExistingVideo} from "./command";
 
    let currentTemplateCategory: string = $state("template");
    let newTemplateName: string = $state("");
 
    function addNewTemplateOrExistingVideo(name: string){
-      if (/((av|AV)\d+)|(BV[0-9a-zA-Z]{10}$)/.test(name)) {
+      if (isExistingVideo(name)) {
          addExistingVideo(name);
       }
       else {

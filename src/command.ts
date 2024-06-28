@@ -179,3 +179,7 @@ export function setupBackendEventListening(){
     });
     console.log("setupBackendEventListening() done");
 }
+
+export function isExistingVideo(input: string): boolean {
+    return /((av|AV)\d+)|(BV[0-9a-zA-Z]{10}$)/.test(input);
+}

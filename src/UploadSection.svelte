@@ -3,12 +3,12 @@
 <script lang="ts">
     import {flip} from "svelte/animate";
 
-    import {activeTemplates} from "./store";
+    import {activeTemplates, allTemplates} from "./store";
     import {contentLimitation, CopyrightType} from "./lib/constants";
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
-    import VideoCategorizingSection from "./VideoCategorizingSection.svelte";
-    import {BackendCommands, cacheCommand} from "./command";
+    import VideoCategorizingSection from "./VideoCategorySelectionSection.svelte";
+    import {BackendCommands, cacheCommand, isExistingVideo} from "./command";
     import CoverUploadSection from "./CoverUploadSection.svelte";
     import VideosUploadSection from "./VideosUploadSection.svelte";
 
@@ -85,9 +85,37 @@
             console.error("BackendCommands.archivePre()", e);
         });
     });
+
+    async function updateForExistingVideo() {
+        if (!isExistingVideo($activeTemplates[index].name)) {
+            addNotification({msg: `视频 ${$activeTemplates[index].name} 不是已发布的视频`, type: NotificationPopMode.ERROR}, true);
+            return;
+        }
+
+        let templateName = $activeTemplates[index].name; // cache this in case the active template changed before the response
+        let templateCategory = $activeTemplates[index].category;
+
+        $allTemplates[templateCategory][templateName] = await BackendCommands.getExistingVideo(templateName);
+        console.log(`Updated template ${templateName} to category ${templateCategory}`);
+
+        if ($activeTemplates[index].name !== templateName) {
+            addNotification({msg: "activeTemplates 被更改了, abort", type: NotificationPopMode.ERROR}, true);
+            return;
+        }
+
+        $activeTemplates[index].data = {...$activeTemplates[index].data, ...$allTemplates[templateCategory][templateName]};
+
+        addNotification({msg: `已更新模板 ${templateName}`, type: NotificationPopMode.INFO}, true);
+    }
 </script>
 
 <h1>Upload for {$activeTemplates[index].category} - {$activeTemplates[index].name}</h1>
+
+<section>
+    {#if isExistingVideo($activeTemplates[index].name)}
+        <button class="btn btn-primary" onclick={updateForExistingVideo}>更新</button>
+    {/if}
+</section>
 
 <section>
     {#if $activeTemplates[index].data.title.length > contentLimitation.titleLength}
