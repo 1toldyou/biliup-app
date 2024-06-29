@@ -69,3 +69,7 @@ To avoid CORS issues, all requests are made by the backend.
 
 But there are still some fetching happening on the frontend, such as loading images, 
 but it's using tauri's `fetch()` from `@tauri-apps/plugin-http` instead of `window.fetch()`, to avoid having issue with request referrer.
+
+
+### Styling
+For Icon, using [Heroicons](https://heroicons.com/)

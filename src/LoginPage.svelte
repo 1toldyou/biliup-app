@@ -3,8 +3,8 @@
 <script lang="ts">
     import {fade, scale} from 'svelte/transition';
 
-    import {isLoggedIn} from "./store.js";
-    import {addNotification} from "./notification.js";
+    import {isLoggedIn} from "./store";
+    import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
     import {BackendCommands} from "./command";
 

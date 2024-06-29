@@ -2,9 +2,9 @@
     let totalComponents = 0;
 </script>
 
-<script>
+<script lang="ts">
     import {onMount} from "svelte";
-    let topDiv;
+    let topDiv: HTMLDivElement;
     let componentId = totalComponents++;
     onMount(() => {
         document.body.appendChild(topDiv);
