@@ -4,6 +4,13 @@ import {BaseDirectory, exists, readTextFile, writeTextFile} from "@tauri-apps/pl
 import {NotificationPopMode, type StudioExtra, type StudioPayload} from "./type";
 import {addNotification} from "./notification.js";
 import {CopyrightType} from "./lib/constants";
+import {persisted} from "svelte-persisted-store";
+import {SubmitInterfaces, UploadLines} from "./command";
+
+// /* settings */
+export let uploadLine = persisted("uploadLine", "");
+export let uploadThreads = persisted("uploadThreads", 3);
+export let submitInterface = persisted("submitInterface", SubmitInterfaces.client);
 
 // /* global state */
 export let isLoggedIn: Writable<boolean> = writable(false);  // Cannot export state from a module if it is reassigned. Either export a function returning the state value or only mutate the state value's properties

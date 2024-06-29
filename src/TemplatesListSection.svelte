@@ -107,7 +107,7 @@
 <section>
 <!--   <p>{currentTemplateCategory}</p>-->
    {#each Object.keys($allTemplates) as category}
-      <button onclick={() => currentTemplateCategory = category}>
+      <button onclick={() => currentTemplateCategory = category} style="margin: 0.25vh">
          {#if category === currentTemplateCategory}
             <strong>{category}</strong>
          {:else}

@@ -331,8 +331,8 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "biliup"
-version = "0.1.21"
-source = "git+https://github.com/ForgQi/biliup-rs.git?rev=20b2b8c#20b2b8c17151905c1d7de4aef1627ba23565a666"
+version = "0.2.0"
+source = "git+https://github.com/biliup/biliup-rs.git?rev=2a29729#2a29729e073b7f581ce7c4f9e47cff773e4b7c35"
 dependencies = [
  "anyhow",
  "async-trait",

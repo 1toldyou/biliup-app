@@ -1,7 +1,9 @@
+import {get} from "svelte/store";
 import {invoke} from "@tauri-apps/api/core";
 import {listen} from "@tauri-apps/api/event";
+
 import type {BilibiliAPIResponse, StudioPayload, VideoPayload} from "./type";
-import {activeTemplates} from "./store";
+import {activeTemplates, uploadLine, uploadThreads} from "./store";
 
 const INVOKE_COMMANDS = {
     log: "log",
@@ -13,6 +15,7 @@ const INVOKE_COMMANDS = {
     coverUpload: "cover_up",
     uploadVideo: "upload_video_v2",
     getExistingVideo: "get_existing_video",
+    submitViaClient: "submit_via_client",
 }
 
 const LISTEN_EVENT_NAMES = {
@@ -46,7 +49,7 @@ export const BackendCommands = {
     },
     
     uploadVideo: async (video: VideoPayload, id: string): Promise<VideoPayload> => {
-        return await invoke(INVOKE_COMMANDS.uploadVideo, {video, id});
+        return await invoke(INVOKE_COMMANDS.uploadVideo, {video, id, line: get(uploadLine), threads: get(uploadThreads)});
     },
     
     isVid: async (input: string): Promise<boolean> => {
@@ -56,6 +59,12 @@ export const BackendCommands = {
     getExistingVideo: async (input: string): Promise<StudioPayload> => {
         return await invoke(INVOKE_COMMANDS.getExistingVideo, {input});
     },
+    
+    submitViaClient: async (studio: StudioPayload): Promise<any> => {
+        return await invoke(INVOKE_COMMANDS.submitViaClient, {studio});
+    },
+    
+    
 }
 
 type ArchivePreResponse = {
@@ -181,5 +190,21 @@ export function setupBackendEventListening(){
 }
 
 export function isExistingVideo(input: string): boolean {
+    // TODO: test for more inputs
     return /((av|AV)\d+)|(BV[0-9a-zA-Z]{10}$)/.test(input);
+}
+
+export enum UploadLines {
+    bda2 = "bda2",
+    ws = "ws",
+    qn = "qn",
+    bldsa = "bldsa",
+    tx = "tx",
+    txa = "txa",
+    bda = "bda",
+}
+
+export enum SubmitInterfaces {
+    client = "client",
+    app = "app",
 }

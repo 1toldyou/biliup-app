@@ -133,12 +133,9 @@ async fn upload(
     let config = load(app.clone())?;
     let probe = if let Some(line) = config.line {
         match line.as_str() {
-            "kodo" => line::kodo(),
             "bda2" => line::bda2(),
             "ws" => line::ws(),
             "qn" => line::qn(),
-            "cos" => line::cos(),
-            "cos-internal" => line::cos_internal(),
             _ => unreachable!(),
         }
     } else {
@@ -370,6 +367,7 @@ fn main() {
             list_accounts,
             login_by_cookie_file,
             upload_video_v2,
+            submit_via_client,
         ])
         .manage(Credential::default())
         .run(tauri::generate_context!())
@@ -415,24 +413,21 @@ async fn upload_video_v2(
     credential: tauri::State<'_, Credential>,
     mut video: Video,
     id: String,
+    line: String,
+    threads: usize,
 ) -> Result<Video> {
     let bili = &*credential.get_current_user_credential(&app).await?;
 
-    let config = load(app.clone())?;
-    let probe = if let Some(line) = config.line {
-        match line.as_str() {
-            "kodo" => line::kodo(),
-            "bda2" => line::bda2(),
-            "ws" => line::ws(),
-            "qn" => line::qn(),
-            "cos" => line::cos(),
-            "cos-internal" => line::cos_internal(),
-            _ => unreachable!(),
-        }
-    } else {
-        line::Probe::probe(&bili.client).await?
+    let probe = match line.as_str() {
+        "bda2" => line::bda2(),
+        "ws" => line::ws(),
+        "qn" => line::qn(),
+        "bldsa" => line::bldsa(),
+        "tx" => line::tx(),
+        "txa" => line::txa(),
+        "bda" => line::bda(),
+        _ => line::Probe::probe(&bili.client).await?,
     };
-    let limit = config.limit;
 
     let filename = video.filename;
     let filepath = PathBuf::from(&filename);
@@ -443,7 +438,7 @@ async fn upload_video_v2(
     let (tx2, mut rx2) = mpsc::unbounded_channel();
     // let (tx, mut rx) = mpsc::channel(1);
     let mut uploaded = 0;
-    let f_video = parcel.upload(StatelessClient::default(), limit, |vs| {
+    let f_video = parcel.upload(StatelessClient::default(), threads, |vs| {
         vs.map(|chunk| {
             let chunk = chunk?;
             let len = chunk.len();
@@ -484,4 +479,26 @@ async fn upload_video_v2(
     video = a_video.await??;
     println!("上传成功");
     Ok(video)
+}
+
+#[tauri::command]
+async fn submit_via_client(
+    app: tauri::AppHandle,
+    studio: Studio,
+    credential: tauri::State<'_, Credential>,
+) -> Result<serde_json::Value> {
+    let login_info = &*credential.get_current_user_credential(&app).await?;
+    let ret = login_info.submit(&studio).await?;
+    Ok(ret.data.unwrap())
+}
+
+#[tauri::command]
+async fn submit_via_app(
+    app: tauri::AppHandle,
+    studio: Studio,
+    credential: tauri::State<'_, Credential>,
+) -> Result<serde_json::Value> {
+    let login_info = &*credential.get_current_user_credential(&app).await?;
+    let ret = login_info.submit_by_app(&studio).await?;
+    Ok(ret.data.unwrap())
 }

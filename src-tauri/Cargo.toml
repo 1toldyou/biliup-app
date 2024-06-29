@@ -21,7 +21,7 @@ reqwest = { version = "0.12.4", features = ["json"] }
 serde_yaml = "0.9.34+deprecated"
 tokio = { version = "1.37.0", features = ["full"] }
 anyhow = "1.0.86"
-biliup = { git = "https://github.com/ForgQi/biliup-rs.git", rev = "20b2b8c" }
+biliup = { git = "https://github.com/biliup/biliup-rs.git", rev = "2a29729" }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
 bytes = "1.6.0"
