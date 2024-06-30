@@ -6,7 +6,7 @@
 
     import {activeTemplates, allTemplates, submitInterface} from "./store";
     import {contentLimitation, CopyrightType} from "./lib/constants";
-    import {NotificationPopMode, type StudioPayload} from "./type";
+    import {NotificationPopMode, type StudioExtra, type StudioPayload} from "./type";
     import {addNotification} from "./notification";
     import VideoCategorizingSection from "./VideoCategorySelectionSection.svelte";
     import {BackendCommands, cacheCommand, isExistingVideo, SubmitInterfaces} from "./command";
@@ -107,6 +107,28 @@
         }
 
         $activeTemplates[index].data = {...$activeTemplates[index].data, ...$allTemplates[templateCategory][templateName]};
+        $allTemplates[templateCategory][templateName].videos.forEach((video, index) => {
+            $activeTemplates[index].data.files[index] = {
+                ...{
+                    id: "",
+                    filename: "",
+                    absolutePath: "",
+                    size: 0,
+                    title: "",
+                    desc: "",
+                    completed: true,
+                    speed: 0,
+                    progress: 100,
+                    uploadedSize: 0,
+                    totalSize: 0,
+                    speedUploaded: 0,
+                    startTimestamp: 0,
+                    started: true,
+                },
+                ...video,
+            }
+        });
+        $activeTemplates[index].data.files = $activeTemplates[index].data.files;
 
         addNotification({msg: `已更新模板 ${templateName}`, type: NotificationPopMode.INFO}, true);
     }

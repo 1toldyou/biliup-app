@@ -122,8 +122,28 @@ export function addToActiveTemplates(category: string, name: string, template: S
     activeTemplates.update((value) => {
         let activeTemplate: StudioPayload & StudioExtra = {
             ...template,
-            files: [],
-        }
+            files: template.videos.map((video) => {
+                return {
+                    ...{
+                        id: "",
+                        filename: "",
+                        absolutePath: "",
+                        size: 0,
+                        title: "",
+                        desc: "",
+                        completed: true,
+                        speed: 0,
+                        progress: 100,
+                        uploadedSize: 0,
+                        totalSize: 0,
+                        speedUploaded: 0,
+                        startTimestamp: 0,
+                        started: true,
+                    },
+                    ...video,
+                }
+            }),
+        };
         value.push({category, name, data: activeTemplate});
         return value;
     });
