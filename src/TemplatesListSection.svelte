@@ -34,7 +34,7 @@
       $allTemplates[currentTemplateCategory][name] = template;
       console.log(`Added template ${name} to category ${currentTemplateCategory}`);
 
-      saveAllTemplates();
+      // saveAllTemplates();
    }
 
    async function addExistingVideo(videoID: string){
@@ -46,7 +46,7 @@
       $allTemplates[currentTemplateCategory][videoID] = await BackendCommands.getExistingVideo(videoID);
       console.log(`Added template ${videoID} to category ${currentTemplateCategory}`);
 
-      await saveAllTemplates();
+      // await saveAllTemplates();
    }
 
    async function removeTemplate(name: string) {
@@ -70,7 +70,7 @@
 
       delete $allTemplates[currentTemplateCategory][name];
       $allTemplates[currentTemplateCategory] = $allTemplates[currentTemplateCategory];  // reactivity
-      await saveAllTemplates();
+      // await saveAllTemplates();
    }
 
    function addTemplateCategory(category: string) {

@@ -5,7 +5,7 @@ import {NotificationPopMode, type StudioExtra, type StudioPayload} from "./type"
 import {addNotification} from "./notification.js";
 import {CopyrightType} from "./lib/constants";
 import {persisted} from "svelte-persisted-store";
-import {SubmitInterfaces, UploadLines} from "./command";
+import {SubmitInterfaces} from "./command";
 
 // /* settings */
 export let uploadLine = persisted("uploadLine", "");
@@ -112,6 +112,16 @@ export async function saveAllTemplates() {
         addNotification({msg: `模板文件保存成功, 共计${templatesCount}个模板`, type: NotificationPopMode.INFO}, false);
     }
 }
+
+
+allTemplates.subscribe((value) => {
+    console.log("allTemplates changed", value);
+    if (Object.keys(value).length === 0) return;
+    
+    saveAllTemplates().then(() => {
+        console.log("saveAllTemplates() as allTemplates changed");
+    });
+});
 
 export function addToActiveTemplates(category: string, name: string, template: StudioPayload) {
     let activeTemplatesValue = get(activeTemplates);
