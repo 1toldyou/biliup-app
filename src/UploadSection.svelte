@@ -225,24 +225,24 @@
             try {
                 let result = await BackendCommands.editExistingVideo(payload);
                 if (result.code === 0) {
-                    addNotification({msg: `已更新稿件 ${$activeTemplates[index].data.title}`, type: NotificationPopMode.INFO}, true);
+                    addNotification({msg: `编辑稿件 "${$activeTemplates[index].data.title}" 成功`, type: NotificationPopMode.INFO}, true);
                 } else {
-                    addNotification({msg: `更新稿件 ${$activeTemplates[index].data.title} 失败`, type: NotificationPopMode.ERROR}, true);
+                    addNotification({msg: `编辑稿件 "${$activeTemplates[index].data.title}" 失败`, type: NotificationPopMode.ERROR}, true);
                 }
             } catch (e) {
-                addNotification({msg: `更新稿件 ${$activeTemplates[index].data.title} 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
+                addNotification({msg: `更新稿件 "${$activeTemplates[index].data.title}" 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
                 console.error("submitByClient()", e);
             }
         } else {
             try {
                 let result = await BackendCommands.submitViaClient(payload);
                 if (result.code === 0) {
-                    addNotification({msg: `已提交稿件 ${$activeTemplates[index].data.title}`, type: NotificationPopMode.INFO}, true);
+                    addNotification({msg: `已提交稿件 "${$activeTemplates[index].data.title}"`, type: NotificationPopMode.INFO}, true);
                 } else {
-                    addNotification({msg: `提交稿件 ${$activeTemplates[index].data.title} 失败`, type: NotificationPopMode.ERROR}, true);
+                    addNotification({msg: `提交稿件 "${$activeTemplates[index].data.title}" 失败`, type: NotificationPopMode.ERROR}, true);
                 }
             } catch (e) {
-                addNotification({msg: `提交稿件 ${$activeTemplates[index].data.title} 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
+                addNotification({msg: `提交稿件 "${$activeTemplates[index].data.title}" 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
                 console.error("submitByClient()", e);
             }
         }
