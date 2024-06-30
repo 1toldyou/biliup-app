@@ -14,6 +14,10 @@ export let submitInterface = persisted("submitInterface", SubmitInterfaces.clien
 
 // /* global state */
 export let isLoggedIn: Writable<boolean> = writable(false);  // Cannot export state from a module if it is reassigned. Either export a function returning the state value or only mutate the state value's properties
+isLoggedIn.subscribe((value) => {
+    console.log("isLoggedIn", value);
+
+});
 
 export let allTemplates: Writable<{[category: string]: {[name: string]: StudioPayload}}> = writable({});
 export let activeTemplates: Writable<{category: string, name: string, data: StudioPayload & StudioExtra}[]> = writable([]);

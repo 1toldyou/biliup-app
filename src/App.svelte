@@ -27,7 +27,7 @@
       on:dragover|preventDefault
       on:drop|preventDefault
 >
-    {#if isLoggedIn}
+    {#if $isLoggedIn}
         <Home/>
     {:else}
         <Login/>
