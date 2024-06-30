@@ -1,6 +1,15 @@
 <script lang="ts">
+    import {join, configDir} from "@tauri-apps/api/path";
+    import {open} from "@tauri-apps/plugin-shell";
+
     import {submitInterface, uploadLine, uploadThreads} from "./store";
     import {SubmitInterfaces, UploadLines} from "./command";
+
+    async function openConfigDir(){
+        let configDirectory = await join(await configDir(), "biliup");
+        console.log("openConfigDir", configDirectory);
+        await open(configDirectory);
+    }
 </script>
 
 <h1 class="text-2xl font-bold text-center">设置</h1>
@@ -23,4 +32,10 @@
             <input type="radio" bind:group={$submitInterface} value={l} data-title={l} aria-label={l} class="join-item btn btn-outline">
         {/each}
     </div>
+
+    <hr>
+
+    <button class="btn btn-accent" onclick={openConfigDir}>
+        打开配置文件夹
+    </button>
 </div>
