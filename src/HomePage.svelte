@@ -2,19 +2,13 @@
 
 
 <script lang="ts">
-    import {BackendCommands, setupBackendEventListening} from "./command";
+    import {setupBackendEventListening} from "./command";
     import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
     import {allTemplates, loadAllTemplates} from "./store";
     import TemplatesList from "./TemplatesListSection.svelte";
     import WorkSection from "./WorkSection.svelte";
-
-    BackendCommands.getMyInfo().then((res) => {
-        console.log("BackendCommands.getMyInfo()", res);
-        addNotification({type: NotificationPopMode.INFO, msg: `成功登录 ${res.data.mid} - ${res.data.name}`}, false);
-    }).catch((e) => {
-        console.error("BackendCommands.getMyInfo()", e);
-    });
+    import UserProfileSection from "./UserProfileSection.svelte";
 
     loadAllTemplates();
 
@@ -42,6 +36,7 @@
 
 <div class="flex items-start">
     <div class="flex-none w-1/3" style="border:1px solid black">
+        <UserProfileSection/>
         <TemplatesList/>
     </div>
     <hr>
