@@ -2,13 +2,14 @@
 
 <script lang="ts">
     import {flip} from "svelte/animate";
+    import {confirm} from "@tauri-apps/plugin-dialog";
 
-    import {activeTemplates, allTemplates} from "./store";
+    import {activeTemplates, allTemplates, submitInterface} from "./store";
     import {contentLimitation, CopyrightType} from "./lib/constants";
-    import {NotificationPopMode} from "./type";
+    import {NotificationPopMode, type StudioPayload} from "./type";
     import {addNotification} from "./notification";
     import VideoCategorizingSection from "./VideoCategorySelectionSection.svelte";
-    import {BackendCommands, cacheCommand, isExistingVideo} from "./command";
+    import {BackendCommands, cacheCommand, isExistingVideo, SubmitInterfaces} from "./command";
     import CoverUploadSection from "./CoverUploadSection.svelte";
     import VideosUploadSection from "./VideosUploadSection.svelte";
 
@@ -21,6 +22,8 @@
     });
     let tagInput: string = $state("");
     let showVideoCategorizingSection: boolean = $state(false);
+
+    let inputsViolations: string[] = $state([]);
 
     function removeTag(tag: string) {
         let currentTags = $activeTemplates[index].data.tag.split(",");
@@ -106,6 +109,121 @@
         $activeTemplates[index].data = {...$activeTemplates[index].data, ...$allTemplates[templateCategory][templateName]};
 
         addNotification({msg: `已更新模板 ${templateName}`, type: NotificationPopMode.INFO}, true);
+    }
+
+    function checkInputFields(): string[] {
+        let currentInputViolations = [];
+
+        if ($activeTemplates[index].data.title.length > contentLimitation.titleLength) {
+            currentInputViolations.push(`标题长度超过${contentLimitation.titleLength}个字符，无法提交，当前为${$activeTemplates[index].data.title.length}个字符`);
+        }
+
+        if ($activeTemplates[index].data.title.length === 0) {
+            currentInputViolations.push(`标题不能为空`);
+        }
+
+        if ($activeTemplates[index].data.source.length > contentLimitation.reprintUrlLength){
+            currentInputViolations.push(`转载来源长度超过${contentLimitation.reprintUrlLength}个字符，无法提交，当前为${$activeTemplates[index].data.source.length}个字符`);
+        }
+
+        if ($activeTemplates[index].data.copyright === CopyrightType.reprint && $activeTemplates[index].data.source.length === 0){
+            currentInputViolations.push(`转载来源不能为空`);
+        }
+
+        if ($activeTemplates[index].data.tag.split(",").filter((v)=> v !== "").length > contentLimitation.tagsCount) {
+            currentInputViolations.push(`标签数量超过${contentLimitation.tagsCount}个，无法提交，当前为${$activeTemplates[index].data.tag.split(",").filter((v)=> v !== "").length}个`);
+        }
+
+        if ($activeTemplates[index].data.tag.split(",").filter((v)=> v !== "").length === 0) {
+            currentInputViolations.push(`标签不能为空`);
+        }
+
+        if ($activeTemplates[index].data.desc.length > contentLimitation.descriptionLengthByZone($activeTemplates[index].data.tid)) {
+            currentInputViolations.push(`简介长度超过${contentLimitation.descriptionLengthByZone($activeTemplates[index].data.tid)}个字符，无法提交，当前为${$activeTemplates[index].data.desc.length}个字符`);
+        }
+
+        if ($activeTemplates[index].data.dynamic.length > contentLimitation.dynamicMessageLength) {
+            currentInputViolations.push(`粉丝动态长度超过${contentLimitation.dynamicMessageLength}个字符，无法提交，当前为${$activeTemplates[index].data.dynamic.length}个字符`);
+        }
+
+        if ($activeTemplates[index].data.files.length === 0) {
+            currentInputViolations.push(`新增稿件分P不能为空`);
+        }
+
+        $activeTemplates[index].data.files.forEach((file, index) => {
+            if (file.title.length > contentLimitation.titleLength) {
+                currentInputViolations.push(`P${index+1} ${file.title} 名称长度超过${contentLimitation.titleLength}个字符，无法提交，当前为${file.title.length}个字符`);
+            }
+        });
+
+        return currentInputViolations;
+    }
+
+    $effect(() => {
+        inputsViolations = checkInputFields();
+    });
+
+    async function submitByClient(){
+        console.log("submitByClient()");
+
+        let payload: StudioPayload = {
+            aid: $activeTemplates[index].data.aid,
+            copyright: $activeTemplates[index].data.copyright,
+            cover: $activeTemplates[index].data.cover,
+            desc: $activeTemplates[index].data.desc,
+            desc_format_id: $activeTemplates[index].data.desc_format_id,
+            desc_v2: $activeTemplates[index].data.desc_v2,
+            dolby: $activeTemplates[index].data.dolby,
+            dtime: $activeTemplates[index].data.dtime,
+            dynamic: $activeTemplates[index].data.dynamic,
+            interactive: $activeTemplates[index].data.interactive,
+            lossless_music: $activeTemplates[index].data.lossless_music,
+            mission_id: $activeTemplates[index].data.mission_id,
+            no_reprint: $activeTemplates[index].data.no_reprint,
+            open_elec: $activeTemplates[index].data.open_elec,
+            open_subtitle: $activeTemplates[index].data.open_subtitle,
+            source: $activeTemplates[index].data.source,
+            subtitle: $activeTemplates[index].data.subtitle,
+            tag: $activeTemplates[index].data.tag,
+            tid: $activeTemplates[index].data.tid,
+            title: $activeTemplates[index].data.title,
+            up_close_danmu: $activeTemplates[index].data.up_close_danmu,
+            up_close_reply: $activeTemplates[index].data.up_close_reply,
+            up_selection_reply: $activeTemplates[index].data.up_selection_reply,
+            videos: $activeTemplates[index].data.files,
+        };
+
+        console.log("submitByClient() payload", payload);
+
+        if (!(await confirm("确认要提交吗"))){
+            return;
+        }
+
+        if (isExistingVideo($activeTemplates[index].name)) {
+            try {
+                let result = await BackendCommands.editExistingVideo(payload);
+                if (result.code === 0) {
+                    addNotification({msg: `已更新稿件 ${$activeTemplates[index].data.title}`, type: NotificationPopMode.INFO}, true);
+                } else {
+                    addNotification({msg: `更新稿件 ${$activeTemplates[index].data.title} 失败`, type: NotificationPopMode.ERROR}, true);
+                }
+            } catch (e) {
+                addNotification({msg: `更新稿件 ${$activeTemplates[index].data.title} 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
+                console.error("submitByClient()", e);
+            }
+        } else {
+            try {
+                let result = await BackendCommands.submitViaClient(payload);
+                if (result.code === 0) {
+                    addNotification({msg: `已提交稿件 ${$activeTemplates[index].data.title}`, type: NotificationPopMode.INFO}, true);
+                } else {
+                    addNotification({msg: `提交稿件 ${$activeTemplates[index].data.title} 失败`, type: NotificationPopMode.ERROR}, true);
+                }
+            } catch (e) {
+                addNotification({msg: `提交稿件 ${$activeTemplates[index].data.title} 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
+                console.error("submitByClient()", e);
+            }
+        }
     }
 </script>
 
@@ -251,5 +369,24 @@
                   class="textarea textarea-bordered w-full bg-red-100 border border-red-300"
                   cols="40" rows="1" placeholder="动态描述"
         ></textarea>
+    {/if}
+</section>
+
+<section>
+    {#if inputsViolations.length > 0}
+        <h3 class="text-center text-xl font-extrabold text-red-500 decoration-8">部分内容长度不符合要求，请谨慎提交</h3>
+        {#each inputsViolations as violation}
+            <p class="text-center text-red-500">{violation}</p>
+        {/each}
+    {/if}
+
+    {#if $submitInterface === SubmitInterfaces.client}
+        <button class="p-2 my-5 w-full flex justify-center bg-blue-500 text-gray-100 rounded-full tracking-wide font-semibold  focus:outline-none focus:shadow-outline hover:bg-blue-600 shadow-lg cursor-pointer transition ease-in duration-300"
+                onclick={submitByClient}
+        >
+            使用投稿工具接口提交
+        </button>
+    {:else if $submitInterface === SubmitInterfaces.app}
+        <button class="btn">使用手机端接口提交（未实装）</button>
     {/if}
 </section>

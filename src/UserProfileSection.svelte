@@ -37,12 +37,12 @@
             return;
         }
 
-        console.log("faceURL", faceURL);
+        // console.log("faceURL", faceURL);
         fetch(faceURL).then((res) => {
             return res.arrayBuffer();
         }).then((arrayBuffer) => {
             faceData = `data:image/png;base64,${btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))}`;
-            console.log(`Converted ${faceURL} to base64`, faceData);
+            // console.log(`Converted ${faceURL} to base64`, faceData);
         }).catch((e) => {
             console.error("fetch(faceURL)", e);
         });

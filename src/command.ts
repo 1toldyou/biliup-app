@@ -15,6 +15,7 @@ const INVOKE_COMMANDS = {
     coverUpload: "cover_up",
     uploadVideo: "upload_video_v2",
     getExistingVideo: "get_existing_video",
+    editExistingVideo: "edit_video",
     submitViaClient: "submit_via_client",
 }
 
@@ -60,11 +61,13 @@ export const BackendCommands = {
         return await invoke(INVOKE_COMMANDS.getExistingVideo, {input});
     },
     
+    editExistingVideo: async (studio: StudioPayload): Promise<any> => {
+        return await invoke(INVOKE_COMMANDS.editExistingVideo, {studio});
+    },
+    
     submitViaClient: async (studio: StudioPayload): Promise<any> => {
         return await invoke(INVOKE_COMMANDS.submitViaClient, {studio});
     },
-    
-    
 }
 
 type ArchivePreResponse = {
