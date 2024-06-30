@@ -35,3 +35,7 @@ export function createPop(msg: string, duration = 3000, mode: NotificationPopMod
     });
 }
 
+export function clearNotificationHistory() {
+    notificationHistory.set([]);
+}
+

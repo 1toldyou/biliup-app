@@ -3,7 +3,7 @@
     import {SvelteToast} from '@zerodevx/svelte-toast'
 
     import {activeTemplates, allTemplates, isLoggedIn} from "./store";
-    import {notificationHistory} from "./notification";
+    import {clearNotificationHistory, notificationHistory} from "./notification";
 	import Login from "./LoginPage.svelte";
 	import Home from "./HomePage.svelte";
     import Modal from "./lib/Modal.svelte";
@@ -68,8 +68,13 @@
                             {/each}
                         </ul>
                     </div>
+
+
                     <p class="text-right text-sm text-slate-500">
                         通知历史
+                        <button class="btn" on:click={clearNotificationHistory}>
+                            清空
+                        </button>
                     </p>
                 </div>
             </Modal>
