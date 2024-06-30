@@ -16,7 +16,8 @@ const INVOKE_COMMANDS = {
     uploadVideo: "upload_video_v2",
     getExistingVideo: "get_existing_video",
     editExistingVideo: "edit_video",
-    submitViaClient: "submit_via_client",
+    submitAsClient: "submit_as_client",
+    submitAsApp: "submit_as_app",
 }
 
 const LISTEN_EVENT_NAMES = {
@@ -65,8 +66,12 @@ export const BackendCommands = {
         return await invoke(INVOKE_COMMANDS.editExistingVideo, {studio});
     },
     
-    submitViaClient: async (studio: StudioPayload): Promise<any> => {
-        return await invoke(INVOKE_COMMANDS.submitViaClient, {studio});
+    submitAsClient: async (studio: StudioPayload): Promise<any> => {
+        return await invoke(INVOKE_COMMANDS.submitAsClient, {studio});
+    },
+    
+    submitAsApp: async (studio: StudioPayload): Promise<any> => {
+        return await invoke(INVOKE_COMMANDS.submitAsApp, {studio});
     },
 }
 
@@ -124,12 +129,13 @@ let commandCache: {[key: string]: any} = {};
 
 // @ts-ignore
 export async function cacheCommand<T extends (...args: any[]) => Promise<BilibiliAPIResponse<any>>>(fn: T, args: Parameters<T>[]): ReturnType<T> {
-    let cacheKey = fn.name + JSON.stringify(args);
+    let cacheKey = `${fn.name}(${JSON.stringify(args)})`;
     if (commandCache[cacheKey]){
         console.debug("cache hit", cacheKey);
         return commandCache[cacheKey];
     }
     
+    console.debug("cache miss", cacheKey)
     let resp = await fn(...args);
     if (resp.code === 0){
         console.debug("cache set", cacheKey)

@@ -185,8 +185,8 @@
         inputsViolations = checkInputFields();
     });
 
-    async function submitByClient(){
-        console.log("submitByClient()");
+    async function submitOrEdit(submitInterface: SubmitInterfaces){
+        console.log(`submitOrEdit(${submitInterface})`);
 
         let payload: StudioPayload = {
             aid: $activeTemplates[index].data.aid,
@@ -231,11 +231,22 @@
                 }
             } catch (e) {
                 addNotification({msg: `更新稿件 "${$activeTemplates[index].data.title}" 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
-                console.error("submitByClient()", e);
+                console.error(`submitOrEdit(${submitInterface}))`, e);
             }
         } else {
             try {
-                let result = await BackendCommands.submitViaClient(payload);
+                let result;
+                switch (submitInterface){
+                    case SubmitInterfaces.client:
+                        result = await BackendCommands.submitAsClient(payload);
+                        break;
+                    case SubmitInterfaces.app:
+                        result = await BackendCommands.submitAsApp(payload);
+                        break;
+                    default:
+                        addNotification({msg: `不支持的提交接口 ${submitInterface}`, type: NotificationPopMode.ERROR}, true);
+                        return;
+                }
                 if (result.code === 0) {
                     addNotification({msg: `已提交稿件 "${$activeTemplates[index].data.title}"`, type: NotificationPopMode.INFO}, true);
                 } else {
@@ -243,7 +254,7 @@
                 }
             } catch (e) {
                 addNotification({msg: `提交稿件 "${$activeTemplates[index].data.title}" 失败: ${e}`, type: NotificationPopMode.ERROR}, true);
-                console.error("submitByClient()", e);
+                console.error(`submitOrEdit(${submitInterface}))`, e);
             }
         }
     }
@@ -404,11 +415,15 @@
 
     {#if $submitInterface === SubmitInterfaces.client}
         <button class="p-2 my-5 w-full flex justify-center bg-blue-500 text-gray-100 rounded-full tracking-wide font-semibold  focus:outline-none focus:shadow-outline hover:bg-blue-600 shadow-lg cursor-pointer transition ease-in duration-300"
-                onclick={submitByClient}
+                onclick={()=>submitOrEdit(SubmitInterfaces.client)}
         >
             使用投稿工具接口提交
         </button>
     {:else if $submitInterface === SubmitInterfaces.app}
-        <button class="btn">使用手机端接口提交（未实装）</button>
+        <button class="p-2 my-5 w-full flex justify-center bg-blue-500 text-gray-100 rounded-full tracking-wide font-semibold  focus:outline-none focus:shadow-outline hover:bg-blue-600 shadow-lg cursor-pointer transition ease-in duration-300"
+                onclick={()=>submitOrEdit(SubmitInterfaces.app)}
+        >
+            使用手机端接口提交
+        </button>
     {/if}
 </section>

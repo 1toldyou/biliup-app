@@ -367,7 +367,8 @@ fn main() {
             list_accounts,
             login_by_cookie_file,
             upload_video_v2,
-            submit_via_client,
+            submit_as_client,
+            submit_as_app,
         ])
         .manage(Credential::default())
         .run(tauri::generate_context!())
@@ -482,7 +483,7 @@ async fn upload_video_v2(
 }
 
 #[tauri::command]
-async fn submit_via_client(
+async fn submit_as_client(
     app: tauri::AppHandle,
     studio: Studio,
     credential: tauri::State<'_, Credential>,
@@ -493,7 +494,7 @@ async fn submit_via_client(
 }
 
 #[tauri::command]
-async fn submit_via_app(
+async fn submit_as_app(
     app: tauri::AppHandle,
     studio: Studio,
     credential: tauri::State<'_, Credential>,
