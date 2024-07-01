@@ -2,11 +2,13 @@
 
 <script lang="ts">
     import {open} from "@tauri-apps/plugin-shell";
+    import {confirm} from "@tauri-apps/plugin-dialog";
     import {fetch} from "@tauri-apps/plugin-http";
 
     import {BackendCommands} from "./command";
     import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
+
 
     let faceURL: string = $state("");
     let faceData: string = $state("");
@@ -47,18 +49,36 @@
             console.error("fetch(faceURL)", e);
         });
     });
+
+    async function logoutButton(){
+        if (!(await confirm("确定要退出登录吗? 当前未上传完成的视频及稿件不会保存"))) {
+            return;
+        }
+
+        await BackendCommands.logout();
+
+        window.location.reload();
+    }
 </script>
 
-<div class="flex items-center flex-none">
+<div class="flex items-center">
     {#if faceURL}
         <img class="object-cover rounded-full h-9 w-9 cursor-pointer hover:ring-2 hover:ring-purple-600 hover:ring-offset-2" src="{faceData}" alt="avatar"/>
     {/if}
 
-    <span onclick={openSpacePage} onkeydown={openSpacePage}
-          role="button" tabindex="0"
-          class="ml-2 font-medium text-gray-800 hover:underline truncate max-w-[8rem]"
-    >
-            {name}
-    </span>
+    <div class="flex-1">
+        <span onclick={openSpacePage} onkeydown={openSpacePage}
+              role="button" tabindex="0"
+              class="ml-2 font-medium text-gray-800 hover:underline truncate max-w-[8rem]"
+        >
+                {name}
+        </span>
+    </div>
+
+    <div class="order-last">
+        <button class="btn btn-warning" onclick={logoutButton}>
+            退出登录
+        </button>
+    </div>
 </div>
 

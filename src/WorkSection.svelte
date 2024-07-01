@@ -29,6 +29,6 @@
             <UploadSection index={currentTemplateIndex} />
         </div>
     {:else}
-        <p>Add a template and select it</p>
+        <p>请选择一个模板</p>
     {/if}
 </section>

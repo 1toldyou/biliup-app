@@ -9,6 +9,7 @@ const INVOKE_COMMANDS = {
     log: "log",
     loginByCookie: "login_by_cookie",
     loginByCookieFile: "login_by_cookie_file",
+    logout: "logout",
     getMyInfo: "get_myinfo",
     getOthersMyInfo: "get_others_myinfo",
     archivePre: "archive_pre",
@@ -36,6 +37,10 @@ export const BackendCommands = {
     
     loginByCookieFile: async (cookieFile: string): Promise<string> => {
         return await invoke(INVOKE_COMMANDS.loginByCookieFile, {cookieFilename: cookieFile});
+    },
+    
+    logout: async (): Promise<void> => {
+        return await invoke(INVOKE_COMMANDS.logout);
     },
     
     getMyInfo: async (): Promise<BilibiliAPIResponse<{mid: number, name: string, face: string}>> => {
