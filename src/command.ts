@@ -10,6 +10,8 @@ const INVOKE_COMMANDS = {
     loginByCookie: "login_by_cookie",
     loginByCookieFile: "login_by_cookie_file",
     logout: "logout",
+    getQrCode: "get_qrcode",
+    loginByQRCode: "login_by_qrcode",
     getMyInfo: "get_myinfo",
     getOthersMyInfo: "get_others_myinfo",
     archivePre: "archive_pre",
@@ -41,6 +43,14 @@ export const BackendCommands = {
     
     logout: async (): Promise<void> => {
         return await invoke(INVOKE_COMMANDS.logout);
+    },
+    
+    getQRCode: async (): Promise<BilibiliAPIResponse<GetQRCodeResponse>> => {
+        return await invoke(INVOKE_COMMANDS.getQrCode);
+    },
+    
+    finishLoginByQRCode: async (initialResponse: BilibiliAPIResponse<GetQRCodeResponse>): Promise<string> => {
+        return await invoke(INVOKE_COMMANDS.loginByQRCode, {res: initialResponse});
     },
     
     getMyInfo: async (): Promise<BilibiliAPIResponse<{mid: number, name: string, face: string}>> => {
@@ -128,6 +138,11 @@ type ArchivePreResponse = {
         level: number,
         state: string
     }
+}
+
+type GetQRCodeResponse = {
+    auto_code: string;
+    url: string;
 }
 
 let commandCache: {[key: string]: any} = {};

@@ -133,7 +133,7 @@
       {/each}
 
       <input type="text" bind:value={newTemplateName} placeholder="模板名称" />
-      <button onclick={() => addNewTemplateOrExistingVideo(newTemplateName)}>添加模板</button>
+      <button class="btn" onclick={() => addNewTemplateOrExistingVideo(newTemplateName)}>添加模板</button>
    {:else}
         <p>"{currentTemplateCategory}" 类别下没有模板</p>
    {/if}
