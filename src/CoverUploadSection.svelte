@@ -146,7 +146,7 @@
     }
 </script>
 
-<p>Cover upload for template {templateIndex}</p>
+<!--<p>Cover upload for template {templateIndex}</p>-->
 <FilePond bind:this={pond}
           name={filePondName}
           labelIdle={filePondLabelIdle}
@@ -160,4 +160,4 @@
           iconRemove=""
 />
 <button class="btn" onclick={removeFile}>移除封面</button>
-<p>Cover: {$activeTemplates[templateIndex].data.cover}</p>
+<!--<p>Cover: {$activeTemplates[templateIndex].data.cover}</p>-->

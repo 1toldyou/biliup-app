@@ -75,12 +75,12 @@
 
    function addTemplateCategory(category: string) {
       if (category === "") {
-         addNotification({msg: `Category name cannot be empty`, type: NotificationPopMode.ERROR}, true);
+         addNotification({msg: `模板类别名称不能为空`, type: NotificationPopMode.ERROR}, true);
          return;
       }
 
       if (category in $allTemplates) {
-         addNotification({msg: `Category "${category}" already exists`, type: NotificationPopMode.ERROR}, true);
+         addNotification({msg: `模板类别 "${category}" 已存在`, type: NotificationPopMode.ERROR}, true);
          return;
       }
 
@@ -102,8 +102,6 @@
    }
 </script>
 
-<h1>Templates List</h1>
-
 <section>
 <!--   <p>{currentTemplateCategory}</p>-->
    {#each Object.keys($allTemplates) as category}
@@ -116,7 +114,7 @@
       </button>
    {/each}
 
-    <button onclick={() => addTemplateCategory("test")}>Add Category</button>
+    <button onclick={() => addTemplateCategory("test")}>添加模板类别</button>
 </section>
 
 <hr class="divider">
@@ -128,15 +126,15 @@
             <p>{name}</p>
             <p>{template.title}</p>
 
-            <button onclick={() => addToActiveTemplates(currentTemplateCategory, name, structuredClone(template))}>Use</button>
-            <button onclick={() => editTemplateName(name, `${name}+`)}>Edit Name</button>
-            <button onclick={() => removeTemplate(name)}>Remove</button>
+            <button onclick={() => addToActiveTemplates(currentTemplateCategory, name, structuredClone(template))}>使用</button>
+            <button onclick={() => editTemplateName(name, `${name}+`)}>编辑名称</button>
+            <button onclick={() => removeTemplate(name)}>移除</button>
          </div>
       {/each}
 
       <input type="text" bind:value={newTemplateName} placeholder="模板名称" />
-      <button onclick={() => addNewTemplateOrExistingVideo(newTemplateName)}>Add Template</button>
+      <button onclick={() => addNewTemplateOrExistingVideo(newTemplateName)}>添加模板</button>
    {:else}
-        <p>No templates in category "{currentTemplateCategory}"</p>
+        <p>"{currentTemplateCategory}" 类别下没有模板</p>
    {/if}
 </section>
