@@ -9,6 +9,7 @@
     import TemplatesList from "./TemplatesListSection.svelte";
     import WorkSection from "./WorkSection.svelte";
     import UserProfileSection from "./UserProfileSection.svelte";
+    import DnDList from "./lib/DnDList.svelte";
 
     loadAllTemplates();
 
@@ -32,6 +33,10 @@
 <!--    >-->
 <!--        Add Error Pop-->
 <!--    </button>-->
+<!--</section>-->
+
+<!--<section>-->
+<!--    <DnDList/>-->
 <!--</section>-->
 
 <div class="flex items-start">

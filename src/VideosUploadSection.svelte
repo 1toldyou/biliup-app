@@ -1,8 +1,6 @@
 <svelte:options runes={true} />
 
 <script lang="ts">
-    import {flip} from "svelte/animate";
-    import {dndzone} from "svelte-dnd-action";
     import {open, confirm} from "@tauri-apps/plugin-dialog";
 
     import {BackendCommands} from "./command";
@@ -10,8 +8,6 @@
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
     import {contentLimitation, videoExtensions} from "./lib/constants";
-
-    const flipDurationMs = 300;
 
     let {
         templateIndex = $bindable()
@@ -21,20 +17,19 @@
     let backgroundVisible = $state(true);
 
     function sortVideos() {
+        console.log("orderCheckbox", orderCheckbox);
 
-    }
+        $activeTemplates[templateIndex].data.files.sort((a, b) => {
+            if (orderCheckbox) {
+                return a.title.localeCompare(b.title);
+            }
+            else {
+                return b.title.localeCompare(a.title);
+            }
+        });
+        $activeTemplates[templateIndex].data.files = $activeTemplates[templateIndex].data.files;
 
-    function handleDndConsider(e: any) {
-        console.log("handleDndConsider()", e);
-        // items = e.detail.items;
-        // selectedTemplate['files'] = e.detail.items;
-    }
-
-    function handleDndFinalize(e: any) {
-        console.log("handleDndFinalize()", e);
-        // items = e.detail.items;
-        // selectedTemplate['files'] = e.detail.items;
-        // console.log('Finalize', e.detail.items);
+        orderCheckbox = !orderCheckbox;
     }
 
     async function openFileSelectionDialog(){
@@ -188,15 +183,60 @@
             }
         ];
     }
+
+    function moveVideoPartUp(videoPartIndex: number){
+        if (videoPartIndex === 0) {
+            return;
+        }
+        activeTemplates.update((templates) => {
+            let temp = templates[templateIndex].data.files[videoPartIndex];
+            templates[templateIndex].data.files[videoPartIndex] = templates[templateIndex].data.files[videoPartIndex - 1];
+            templates[templateIndex].data.files[videoPartIndex - 1] = temp;
+            return templates;
+        });
+    }
+
+    function moveVideoPartDown(videoPartIndex: number) {
+        if (videoPartIndex === $activeTemplates[templateIndex].data.files.length - 1) {
+            return;
+        }
+        activeTemplates.update((templates) => {
+            let temp = templates[templateIndex].data.files[videoPartIndex];
+            templates[templateIndex].data.files[videoPartIndex] = templates[templateIndex].data.files[videoPartIndex + 1];
+            templates[templateIndex].data.files[videoPartIndex + 1] = temp;
+            return templates;
+        });
+    }
+
+    function moveVideoPartToTop(videoPartIndex: number) {
+        if (videoPartIndex === 0) {
+            return;
+        }
+        activeTemplates.update((templates) => {
+            let temp = templates[templateIndex].data.files[videoPartIndex];
+            templates[templateIndex].data.files.splice(videoPartIndex, 1);
+            templates[templateIndex].data.files.unshift(temp);
+            return templates;
+        });
+    }
+
+    function moveVideoPartToBottom(videoPartIndex: number) {
+        if (videoPartIndex === $activeTemplates[templateIndex].data.files.length - 1) {
+            return;
+        }
+        activeTemplates.update((templates) => {
+            let temp = templates[templateIndex].data.files[videoPartIndex];
+            templates[templateIndex].data.files.splice(videoPartIndex, 1);
+            templates[templateIndex].data.files.push(temp);
+            return templates;
+        });
+    }
 </script>
 
 <div class="grid grid-flow-col mb-1">
     <label class="w-auto flex items-center font-bold tracking-wide">
         视频
         <button class="swap swap-rotate ml-2" onclick={sortVideos}>
-            <!-- this hidden checkbox controls the state -->
-            <input type="checkbox" bind:checked="{orderCheckbox}"/>
-
             <svg xmlns="http://www.w3.org/2000/svg" class="swap-off fill-current h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
             </svg>
@@ -222,17 +262,14 @@
 {#if !backgroundVisible}
     <p>Drag and Drop</p>
 {:else}
-    <div use:dndzone="{{items: $activeTemplates[templateIndex].data.files, flipDurationMs}}"
-         onconsider="{handleDndConsider}"
-         onfinalize="{handleDndFinalize}"
-         class="bg-[#fafcfd] flex flex-col rounded-lg"
-    >
-        {#each $activeTemplates[templateIndex].data.files as file(file.id)}
-            <div class="shadow-sm rounded-lg" animate:flip="{{duration: flipDurationMs}}">
+    <section class="bg-[#fafcfd] flex flex-col rounded-lg">
+        {#each $activeTemplates[templateIndex].data.files as file, i}
+            <div class="shadow-sm rounded-lg">
                 <div class="flex items-center justify-center space-x-2 px-1">
                     <svg class="svg m-auto h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
                     </svg>
+                    <p>P{i+1}</p>
                     <div class="flex-grow w-0">
                         <div class="flex">
                             <div class="w-full">
@@ -244,8 +281,7 @@
                                     {/if}
                                     <div class="text-gray-500 min-w-fit text-sm">{(file.totalSize/1024/1024).toFixed(2)} MiB</div>
                                 </div>
-                                <span class="block max bg-yellow-300 border-yellow-300 border-opacity-60 border rounded-full" class:complete={!file.completed}
-                                      style="width: {file.progress}%;"></span>
+                                <span class="block max bg-yellow-300 border-yellow-300 border-opacity-60 border rounded-full" class:complete={!file.completed} style="width: {file.progress}%;"></span>
                             </div>
                         </div>
                     </div>
@@ -254,6 +290,26 @@
                         <div>{file.speed.toFixed(2)} MB/s</div>
                         <div>{file.progress.toFixed(2)} %</div>
                     </div>
+                    <button onclick={()=>moveVideoPartUp(i)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path fill-rule="evenodd" d="M11.47 7.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button onclick={()=>moveVideoPartDown(i)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 1 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button onclick={()=>moveVideoPartToTop(i)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path fill-rule="evenodd" d="M11.47 2.47a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06l-6.22-6.22V21a.75.75 0 0 1-1.5 0V4.81l-6.22 6.22a.75.75 0 1 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                    <button onclick={()=>moveVideoPartToBottom(i)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                            <path fill-rule="evenodd" d="M12.53 21.53a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 1 1 1.06-1.06l6.22 6.22V3a.75.75 0 0 1 1.5 0v16.19l6.22-6.22a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                     <button onclick={()=>removeVideo(file.id)}>
                         <svg class="del m-auto h-7 w-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path clip-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" fill-rule="evenodd"/>
@@ -262,7 +318,7 @@
                 </div>
             </div>
         {/each}
-    </div>
+    </section>
 {/if}
 
 <button class="btn" onclick={addExampleVideo}>Add Example Video</button>
