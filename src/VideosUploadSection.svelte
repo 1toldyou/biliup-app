@@ -1,13 +1,17 @@
 <svelte:options runes={true} />
 
 <script lang="ts">
+    import {listen, TauriEvent} from "@tauri-apps/api/event";
     import {open, confirm} from "@tauri-apps/plugin-dialog";
+    import {basename} from "@tauri-apps/api/path";
 
     import {BackendCommands} from "./command";
     import {activeTemplates} from "./store";
     import {NotificationPopMode} from "./type";
     import {addNotification} from "./notification";
     import {contentLimitation, videoExtensions} from "./lib/constants";
+    import {onDestroy, onMount} from "svelte";
+
 
     let {
         templateIndex = $bindable()
@@ -15,6 +19,49 @@
 
     let orderCheckbox = $state(false);
     let backgroundVisible = $state(true);
+
+    let videoFileDropListenerUnListen: () => void;
+    onMount(() => {
+        listen(TauriEvent.DROP, (data: {payload: {paths: string[]}}) => {
+            console.log(TauriEvent.DROP, data);
+            let paths = data.payload.paths;
+            if (!Array.isArray(paths)) {
+                console.error("paths is not an array", paths);
+                return;
+            }
+            if (paths.length === 0) {
+                console.error("paths is empty", paths);
+                return;
+            }
+
+            let validVideoFiles = paths.filter((path) => videoExtensions.some((ext) => path.endsWith("." + ext)));
+            if (validVideoFiles.length === 0) {
+                addNotification({type: NotificationPopMode.ERROR, msg: `没有找到视频文件`}, true);
+                return;
+            }
+
+            console.log("validVideoFiles", validVideoFiles);
+
+            console.log("will upload to templateIndex", templateIndex);
+            Promise.all(validVideoFiles.map(async (path) => ({filename: await basename(path), absolutePath: path}))).then((files) => {
+                uploadVideos(files);
+            });
+        }).then((f) => {
+            videoFileDropListenerUnListen = f;
+            console.log(`listen(${TauriEvent.DROP}) registered`);
+        });
+    });
+
+    onDestroy(() => {
+        console.log("VideosUploadSection.svelte onDestroy()");
+        try {
+            videoFileDropListenerUnListen();
+            console.log(`listen(${TauriEvent.DROP}) unregistered`);
+        } catch (e) {
+            console.error(`listen(${TauriEvent.DROP}) unregister failed`, e);
+        }
+        console.log("VideosUploadSection.svelte onDestroy() done");
+    });
 
     function sortVideos() {
         console.log("orderCheckbox", orderCheckbox);
@@ -259,66 +306,62 @@
     {/if}
 </div>
 
-{#if !backgroundVisible}
-    <p>Drag and Drop</p>
-{:else}
-    <section class="bg-[#fafcfd] flex flex-col rounded-lg">
-        {#each $activeTemplates[templateIndex].data.files as file, i}
-            <div class="shadow-sm rounded-lg">
-                <div class="flex items-center justify-center space-x-2 px-1">
-                    <svg class="svg m-auto h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-                    </svg>
-                    <p>P{i+1}</p>
-                    <div class="flex-grow w-0">
-                        <div class="flex">
-                            <div class="w-full">
-                                <div class="flex w-full justify-between">
-                                    {#if file.title.length <= contentLimitation.videoPartTitleLength}
-                                        <input bind:value="{file.title}" class="bg-inherit w-full truncate"/>
-                                    {:else}
-                                        <input bind:value="{file.title}" class="bg-inherit w-full truncate bg-red-100 border border-red-300"/>
-                                    {/if}
-                                    <div class="text-gray-500 min-w-fit text-sm">{(file.totalSize/1024/1024).toFixed(2)} MiB</div>
-                                </div>
-                                <span class="block max bg-yellow-300 border-yellow-300 border-opacity-60 border rounded-full" class:complete={!file.completed} style="width: {file.progress}%;"></span>
+<section class="bg-[#fafcfd] flex flex-col rounded-lg">
+    {#each $activeTemplates[templateIndex].data.files as file, i}
+        <div class="shadow-sm rounded-lg">
+            <div class="flex items-center justify-center space-x-2 px-1">
+                <svg class="svg m-auto h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                </svg>
+                <p>P{i+1}</p>
+                <div class="flex-grow w-0">
+                    <div class="flex">
+                        <div class="w-full">
+                            <div class="flex w-full justify-between">
+                                {#if file.title.length <= contentLimitation.videoPartTitleLength}
+                                    <input bind:value="{file.title}" class="bg-inherit w-full truncate"/>
+                                {:else}
+                                    <input bind:value="{file.title}" class="bg-inherit w-full truncate bg-red-100 border border-red-300"/>
+                                {/if}
+                                <div class="text-gray-500 min-w-fit text-sm">{(file.totalSize/1024/1024).toFixed(2)} MiB</div>
                             </div>
+                            <span class="block max bg-yellow-300 border-yellow-300 border-opacity-60 border rounded-full" class:complete={!file.completed} style="width: {file.progress}%;"></span>
                         </div>
                     </div>
-                    <div class="flex-none flex flex-col w-20 h-12 justify-center items-center text-gray-500 font-mono text-xs">
-                        <!-- This item will not grow -->
-                        <div>{file.speed.toFixed(2)} MB/s</div>
-                        <div>{file.progress.toFixed(2)} %</div>
-                    </div>
-                    <button onclick={()=>moveVideoPartUp(i)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                            <path fill-rule="evenodd" d="M11.47 7.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <button onclick={()=>moveVideoPartDown(i)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                            <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 1 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <button onclick={()=>moveVideoPartToTop(i)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                            <path fill-rule="evenodd" d="M11.47 2.47a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06l-6.22-6.22V21a.75.75 0 0 1-1.5 0V4.81l-6.22 6.22a.75.75 0 1 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <button onclick={()=>moveVideoPartToBottom(i)}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                            <path fill-rule="evenodd" d="M12.53 21.53a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 1 1 1.06-1.06l6.22 6.22V3a.75.75 0 0 1 1.5 0v16.19l6.22-6.22a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
-                        </svg>
-                    </button>
-                    <button onclick={()=>removeVideo(file.id)}>
-                        <svg class="del m-auto h-7 w-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path clip-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" fill-rule="evenodd"/>
-                        </svg>
-                    </button>
                 </div>
+                <div class="flex-none flex flex-col w-20 h-12 justify-center items-center text-gray-500 font-mono text-xs">
+                    <!-- This item will not grow -->
+                    <div>{file.speed.toFixed(2)} MB/s</div>
+                    <div>{file.progress.toFixed(2)} %</div>
+                </div>
+                <button onclick={()=>moveVideoPartUp(i)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path fill-rule="evenodd" d="M11.47 7.72a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button onclick={()=>moveVideoPartDown(i)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 1 1 1.06-1.06L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button onclick={()=>moveVideoPartToTop(i)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path fill-rule="evenodd" d="M11.47 2.47a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 1 1-1.06 1.06l-6.22-6.22V21a.75.75 0 0 1-1.5 0V4.81l-6.22 6.22a.75.75 0 1 1-1.06-1.06l7.5-7.5Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button onclick={()=>moveVideoPartToBottom(i)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                        <path fill-rule="evenodd" d="M12.53 21.53a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 1 1 1.06-1.06l6.22 6.22V3a.75.75 0 0 1 1.5 0v16.19l6.22-6.22a.75.75 0 1 1 1.06 1.06l-7.5 7.5Z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <button onclick={()=>removeVideo(file.id)}>
+                    <svg class="del m-auto h-7 w-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" fill-rule="evenodd"/>
+                    </svg>
+                </button>
             </div>
-        {/each}
-    </section>
-{/if}
+        </div>
+    {/each}
+</section>
 
 <button class="btn" onclick={addExampleVideo}>Add Example Video</button>

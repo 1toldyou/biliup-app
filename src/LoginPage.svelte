@@ -1,11 +1,16 @@
 <svelte:options runes={true} />
 
 <script lang="ts">
+    import {configDir, join} from "@tauri-apps/api/path";
+    import {open} from "@tauri-apps/plugin-shell";
+
+    import {QRCodeImage} from "svelte-qrcode-image";
+
     import {isLoggedIn} from "./store";
     import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
     import {BackendCommands} from "./command";
-    import {QRCodeImage} from "svelte-qrcode-image";
+    
 
     enum LoginMethod {
         NONE = "NONE",
@@ -73,6 +78,11 @@
 
         await loadAccountList();
     }
+
+    async function openCookiesDir(){
+        let configDirectory = await join(await configDir(), "biliup", "users");
+        await open(configDirectory);
+    }
 </script>
 
 <div class="container mx-auto">
@@ -80,6 +90,7 @@
         <div>
             <div>
                 <button class="btn" onclick={loginByQrCodeButton}>扫码登录</button>
+                <button class="btn" onclick={openCookiesDir}>打开cookie文件夹</button>
             </div>
             <div>
                 {#if loginMethod === LoginMethod.QR_CODE}

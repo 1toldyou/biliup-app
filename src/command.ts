@@ -1,6 +1,6 @@
 import {get} from "svelte/store";
 import {invoke} from "@tauri-apps/api/core";
-import {listen} from "@tauri-apps/api/event";
+import {listen, TauriEvent} from "@tauri-apps/api/event";
 
 import type {BilibiliAPIResponse, StudioPayload, VideoPayload} from "./type";
 import {activeTemplates, uploadLine, uploadThreads} from "./store";
@@ -216,6 +216,20 @@ export function setupBackendEventListening(){
         console.log(`listen(${LISTEN_EVENT_NAMES.uploadSpeedUpdate}) registered`);
     });
     console.log("setupBackendEventListening() done");
+}
+
+export function setupFrontendEventListening(){
+    console.log("setupFrontendEventListening()");
+    
+    // listen(TauriEvent.DROP, (data: {payload: {paths: string[]}}) => {
+    //     console.log(TauriEvent.DROP, data);
+    //     let paths = data.payload.paths;
+    //
+    // }).then(() => {
+    //     console.log(`listen(${TauriEvent.DROP}) registered`);
+    // });
+    
+    console.log("setupFrontendEventListening() done");
 }
 
 export function isExistingVideo(input: string): boolean {

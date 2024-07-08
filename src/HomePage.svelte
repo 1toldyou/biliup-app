@@ -2,7 +2,7 @@
 
 
 <script lang="ts">
-    import {setupBackendEventListening} from "./command";
+    import {setupBackendEventListening, setupFrontendEventListening} from "./command";
     import {addNotification} from "./notification";
     import {NotificationPopMode} from "./type";
     import {allTemplates, loadAllTemplates} from "./store";
@@ -16,6 +16,7 @@
     $effect(() => console.log("$allTemplates", $allTemplates));
 
     setupBackendEventListening();
+    setupFrontendEventListening();
 </script>
 
 <!--<section>-->

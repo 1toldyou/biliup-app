@@ -71,5 +71,8 @@ But there are still some fetching happening on the frontend, such as loading ima
 but it's using tauri's `fetch()` from `@tauri-apps/plugin-http` instead of `window.fetch()`, to avoid having issue with request referrer.
 
 
+#### Event Listener
+- Frontend: inside `src/HomePage.svelte` for events need logged in user's credential
+
 ### Styling
 For Icon, using [Heroicons](https://heroicons.com/)
